@@ -73,7 +73,9 @@ $USER_LEVEL_PRIVS = [["{E35313A1-BDC4-466C-B9BC-088D7A329967}t001_tahun_ajaran",
 	["{E35313A1-BDC4-466C-B9BC-088D7A329967}r101_lap_bayar","-2","0"],
 	["{E35313A1-BDC4-466C-B9BC-088D7A329967}r101_lap_bayar","0","0"],
 	["{E35313A1-BDC4-466C-B9BC-088D7A329967}r102_lap_tunggak","-2","0"],
-	["{E35313A1-BDC4-466C-B9BC-088D7A329967}r102_lap_tunggak","0","0"]];
+	["{E35313A1-BDC4-466C-B9BC-088D7A329967}r102_lap_tunggak","0","0"],
+	["{E35313A1-BDC4-466C-B9BC-088D7A329967}r103_lap_um","-2","0"],
+	["{E35313A1-BDC4-466C-B9BC-088D7A329967}r103_lap_um","0","0"]];
 
 // User level table info
 $USER_LEVEL_TABLES = [["t001_tahun_ajaran","t001_tahun_ajaran","Thn. Ajaran",true,"{E35313A1-BDC4-466C-B9BC-088D7A329967}"],
@@ -107,4 +109,5 @@ $USER_LEVEL_TABLES = [["t001_tahun_ajaran","t001_tahun_ajaran","Thn. Ajaran",tru
 	["c304_import_aksi.php","c304_import_aksi","Import Aksi",true,"{E35313A1-BDC4-466C-B9BC-088D7A329967}"],
 	["c305_import_aksi2.php","c305_import_aksi2","Proses Import",true,"{E35313A1-BDC4-466C-B9BC-088D7A329967}"],
 	["r101_lap_bayar","r101_lap_bayar","Pembayaran",true,"{E35313A1-BDC4-466C-B9BC-088D7A329967}"],
-	["r102_lap_tunggak","r102_lap_tunggak","Tunggakan",true,"{E35313A1-BDC4-466C-B9BC-088D7A329967}"]];
+	["r102_lap_tunggak","r102_lap_tunggak","Tunggakan",true,"{E35313A1-BDC4-466C-B9BC-088D7A329967}"],
+	["r103_lap_um","r103_lap_um","Uang Masuk",true,"{E35313A1-BDC4-466C-B9BC-088D7A329967}"]];

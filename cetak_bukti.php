@@ -53,15 +53,15 @@ left join t001_tahun_ajaran ta on dk.tahun_ajaran_id = ta.id
 	<hr/>
 	<table cellspacing="0" cellpadding="4">
 		<tr>
-			<td width="200">Nama Siswa</td>
+			<td width="200">Nama</td>
 			<td width="5">:</td>
 			<td width="350"><?php echo $row['SiswaNama']; ?></td>
-			<td width="200">Tanggal Bayar</td>
+			<td width="200">Tgl. Bayar</td>
 			<td width="5">:</td>
 			<td width="250"><?php $date=date_create($row["TglBayar"]); echo date_format($date, "d-m-Y") ?></td>
 		</tr>
 		<tr>
-			<td width="200">No Induk</td>
+			<td width="200">No. Induk</td>
 			<td width="5">:</td>
 			<td width="350"><?php echo $row['NomorInduk']; ?></td>
 			<td width="200">Periode</td>

@@ -4,7 +4,7 @@ namespace PHPMaker2020\project1;
 /**
  * Page class
  */
-class r102_lap_tunggak_summary extends r102_lap_tunggak
+class r103_lap_um_summary extends r103_lap_um
 {
 
 	// Page ID
@@ -14,10 +14,10 @@ class r102_lap_tunggak_summary extends r102_lap_tunggak
 	public $ProjectID = "{E35313A1-BDC4-466C-B9BC-088D7A329967}";
 
 	// Table name
-	public $TableName = 'r102_lap_tunggak';
+	public $TableName = 'r103_lap_um';
 
 	// Page object name
-	public $PageObjName = "r102_lap_tunggak_summary";
+	public $PageObjName = "r103_lap_um_summary";
 
 	// CSS
 	public $ReportTableClass = "";
@@ -366,10 +366,10 @@ class r102_lap_tunggak_summary extends r102_lap_tunggak
 		// Parent constuctor
 		parent::__construct();
 
-		// Table object (r102_lap_tunggak)
-		if (!isset($GLOBALS["r102_lap_tunggak"]) || get_class($GLOBALS["r102_lap_tunggak"]) == PROJECT_NAMESPACE . "r102_lap_tunggak") {
-			$GLOBALS["r102_lap_tunggak"] = &$this;
-			$GLOBALS["Table"] = &$GLOBALS["r102_lap_tunggak"];
+		// Table object (r103_lap_um)
+		if (!isset($GLOBALS["r103_lap_um"]) || get_class($GLOBALS["r103_lap_um"]) == PROJECT_NAMESPACE . "r103_lap_um") {
+			$GLOBALS["r103_lap_um"] = &$this;
+			$GLOBALS["Table"] = &$GLOBALS["r103_lap_um"];
 		}
 
 		// Initialize URLs
@@ -388,7 +388,7 @@ class r102_lap_tunggak_summary extends r102_lap_tunggak
 
 		// Table name (for backward compatibility only)
 		if (!defined(PROJECT_NAMESPACE . "TABLE_NAME"))
-			define(PROJECT_NAMESPACE . "TABLE_NAME", 'r102_lap_tunggak');
+			define(PROJECT_NAMESPACE . "TABLE_NAME", 'r103_lap_um');
 
 		// Start timer
 		if (!isset($GLOBALS["DebugTimer"]))
@@ -691,15 +691,14 @@ class r102_lap_tunggak_summary extends r102_lap_tunggak
 			$this->ReportTableClass = "table ew-table";
 
 		// Set field visibility for detail fields
-		$this->TahunAjaran->setVisibility();
-		$this->SekolahNama->setVisibility();
-		$this->KelasNama->setVisibility();
-		$this->NomorInduk->setVisibility();
-		$this->SiswaNama->setVisibility();
-		$this->IuranNama->setVisibility();
-		$this->Periode->setVisibility();
-		$this->PeriodeBulan->setVisibility();
-		$this->JumlahBayar->setVisibility();
+		$this->tahunajaran->setVisibility();
+		$this->sekolahnama->setVisibility();
+		$this->kelasnama->setVisibility();
+		$this->nomorinduk->setVisibility();
+		$this->siswanama->setVisibility();
+		$this->iurannama->setVisibility();
+		$this->periodebayar->setVisibility();
+		$this->jumlah_total->setVisibility();
 
 		// Set up groups per page dynamically
 		$this->setupDisplayGroups();
@@ -744,8 +743,8 @@ class r102_lap_tunggak_summary extends r102_lap_tunggak
 		// Update filter
 		AddFilter($this->Filter, $this->SearchWhere);
 
-		// Get total group count
-		$sql = BuildReportSql($this->getSqlSelectGroup(), $this->getSqlWhere(), $this->getSqlGroupBy(), $this->getSqlHaving(), "", $this->Filter, "");
+		// Get total count
+		$sql = BuildReportSql($this->getSqlSelect(), $this->getSqlWhere(), $this->getSqlGroupBy(), $this->getSqlHaving(), "", $this->Filter, "");
 		$this->TotalGroups = $this->getRecordCount($sql);
 		if ($this->DisplayGroups <= 0 || $this->DrillDown || $DashboardReport) // Display all groups
 			$this->DisplayGroups = $this->TotalGroups;
@@ -783,18 +782,13 @@ class r102_lap_tunggak_summary extends r102_lap_tunggak
 			$this->FilterOptions->hideAllOptions();
 		}
 
-		// Get group records
+		// Get current page records
 		if ($this->TotalGroups > 0) {
-			$grpSort = UpdateSortFields($this->getSqlOrderByGroup(), $this->Sort, 2); // Get grouping field only
-			$sql = BuildReportSql($this->getSqlSelectGroup(), $this->getSqlWhere(), $this->getSqlGroupBy(), $this->getSqlHaving(), $this->getSqlOrderByGroup(), $this->Filter, $grpSort);
-			$grpRs = $this->getRecordset($sql, $this->DisplayGroups, $this->StartGroup - 1);
-			$this->GroupRecords = $grpRs->getRows(); // Get records of first grouping field
-			$this->loadGroupRowValues();
+			$sql = BuildReportSql($this->getSqlSelect(), $this->getSqlWhere(), $this->getSqlGroupBy(), $this->getSqlHaving(), "", $this->Filter, $this->Sort);
+			$rs = $this->getRecordset($sql, $this->DisplayGroups, $this->StartGroup - 1);
+			$this->DetailRecords = $rs->getRows(); // Get records
 			$this->GroupCount = 1;
 		}
-
-		// Init detail records
-		$this->DetailRecords = [];
 		$this->setupFieldCount();
 
 		// Set the last group to display if not export all
@@ -809,19 +803,10 @@ class r102_lap_tunggak_summary extends r102_lap_tunggak
 			$this->StopGroup = $this->TotalGroups;
 		$this->RecordCount = 0;
 		$this->RecordIndex = 0;
+		$this->setGroupCount($this->StopGroup - $this->StartGroup + 1, 1);
 
 		// Set up pager
 		$this->Pager = new PrevNextPager($this->StartGroup, $this->DisplayGroups, $this->TotalGroups, $this->PageSizes, $this->GroupRange, $this->AutoHidePager, $this->AutoHidePageSizeSelector);
-	}
-
-	// Load group row values
-	public function loadGroupRowValues()
-	{
-		$cnt = count($this->GroupRecords); // Get record count
-		if ($this->GroupCount < $cnt)
-			$this->keterangan->setGroupValue($this->GroupRecords[$this->GroupCount][0]);
-		else
-			$this->keterangan->setGroupValue("");
 	}
 
 	// Load row values
@@ -829,52 +814,26 @@ class r102_lap_tunggak_summary extends r102_lap_tunggak
 	{
 		if ($this->RecordIndex == 1) { // Load first row data
 			$data = [];
-			$data["keterangan"] = $record['keterangan'];
-			$data["IuranNama2"] = $record['IuranNama2'];
-			$data["Jumlah"] = $record['Jumlah'];
-			$data["TahunAjaran"] = $record['TahunAjaran'];
-			$data["SekolahNama"] = $record['SekolahNama'];
-			$data["KelasNama"] = $record['KelasNama'];
-			$data["NomorInduk"] = $record['NomorInduk'];
-			$data["SiswaNama"] = $record['SiswaNama'];
-			$data["IuranNama"] = $record['IuranNama'];
-			$data["Periode"] = $record['Periode'];
-			$data["PeriodeBulan"] = $record['PeriodeBulan'];
-			$data["JumlahBayar"] = $record['JumlahBayar'];
-			$data["daf_kelas_siswa_id"] = $record['daf_kelas_siswa_id'];
+			$data["tahunajaran"] = $record['tahunajaran'];
+			$data["sekolahnama"] = $record['sekolahnama'];
+			$data["kelasnama"] = $record['kelasnama'];
+			$data["nomorinduk"] = $record['nomorinduk'];
+			$data["siswanama"] = $record['siswanama'];
+			$data["iurannama"] = $record['iurannama'];
+			$data["periodebayar"] = $record['periodebayar'];
+			$data["jumlah_total"] = $record['jumlah_total'];
 			$data["iuran_id"] = $record['iuran_id'];
-			$data["StatusBayar"] = $record['StatusBayar'];
-			$data["TglBayar"] = $record['TglBayar'];
-			$data["siswa_id"] = $record['siswa_id'];
-			$data["dk_id"] = $record['dk_id'];
-			$data["kelas_id"] = $record['kelas_id'];
-			$data["sekolah_id"] = $record['sekolah_id'];
-			$data["tahun_ajaran_id"] = $record['tahun_ajaran_id'];
-			$data["PeriodeNow"] = $record['PeriodeNow'];
 			$this->Rows[] = $data;
 		}
-		$this->keterangan->setDbValue(GroupValue($this->keterangan, $record['keterangan']));
-		$this->IuranNama2->setDbValue($record['IuranNama2']);
-		$this->Jumlah->setDbValue($record['Jumlah']);
-		$this->TahunAjaran->setDbValue($record['TahunAjaran']);
-		$this->SekolahNama->setDbValue($record['SekolahNama']);
-		$this->KelasNama->setDbValue($record['KelasNama']);
-		$this->NomorInduk->setDbValue($record['NomorInduk']);
-		$this->SiswaNama->setDbValue($record['SiswaNama']);
-		$this->IuranNama->setDbValue($record['IuranNama']);
-		$this->Periode->setDbValue($record['Periode']);
-		$this->PeriodeBulan->setDbValue($record['PeriodeBulan']);
-		$this->JumlahBayar->setDbValue($record['JumlahBayar']);
-		$this->daf_kelas_siswa_id->setDbValue($record['daf_kelas_siswa_id']);
+		$this->tahunajaran->setDbValue($record['tahunajaran']);
+		$this->sekolahnama->setDbValue($record['sekolahnama']);
+		$this->kelasnama->setDbValue($record['kelasnama']);
+		$this->nomorinduk->setDbValue($record['nomorinduk']);
+		$this->siswanama->setDbValue($record['siswanama']);
+		$this->iurannama->setDbValue($record['iurannama']);
+		$this->periodebayar->setDbValue($record['periodebayar']);
+		$this->jumlah_total->setDbValue($record['jumlah_total']);
 		$this->iuran_id->setDbValue($record['iuran_id']);
-		$this->StatusBayar->setDbValue($record['StatusBayar']);
-		$this->TglBayar->setDbValue($record['TglBayar']);
-		$this->siswa_id->setDbValue($record['siswa_id']);
-		$this->dk_id->setDbValue($record['dk_id']);
-		$this->kelas_id->setDbValue($record['kelas_id']);
-		$this->sekolah_id->setDbValue($record['sekolah_id']);
-		$this->tahun_ajaran_id->setDbValue($record['tahun_ajaran_id']);
-		$this->PeriodeNow->setDbValue($record['PeriodeNow']);
 	}
 
 	// Render row
@@ -883,17 +842,8 @@ class r102_lap_tunggak_summary extends r102_lap_tunggak
 		global $Security, $Language, $Language;
 		$conn = $this->getConnection();
 		if ($this->RowType == ROWTYPE_TOTAL && $this->RowTotalSubType == ROWTOTAL_FOOTER && $this->RowTotalType == ROWTOTAL_PAGE) { // Get Page total
-
-			// Build detail SQL
-			$firstGrpFld = &$this->keterangan;
-			$firstGrpFld->getDistinctValues($this->GroupRecords);
-			$where = DetailFilterSql($firstGrpFld, $this->getSqlFirstGroupField(), $firstGrpFld->DistinctValues, $this->Dbid);
-			if ($this->Filter != "")
-				$where = "($this->Filter) AND ($where)";
-			$sql = BuildReportSql($this->getSqlSelect(), $this->getSqlWhere(), $this->getSqlGroupBy(), $this->getSqlHaving(), $this->getSqlOrderBy(), $where, $this->Sort);
-			$rs = $this->getRecordset($sql);
-			$records = $rs ? $rs->getRows() : [];
-			$this->JumlahBayar->getSum($records);
+			$records = &$this->DetailRecords;
+			$this->jumlah_total->getSum($records);
 			$this->PageTotalCount = count($records);
 		} elseif ($this->RowType == ROWTYPE_TOTAL && $this->RowTotalSubType == ROWTOTAL_FOOTER && $this->RowTotalType == ROWTOTAL_GRAND) { // Get Grand total
 			$hasCount = FALSE;
@@ -916,16 +866,15 @@ class r102_lap_tunggak_summary extends r102_lap_tunggak
 			$sql = $this->getSqlAggregatePrefix() . $sql . $this->getSqlAggregateSuffix();
 			$rsagg = $conn->execute($sql);
 			if ($rsagg) {
-				$this->TahunAjaran->Count = $this->TotalCount;
-				$this->SekolahNama->Count = $this->TotalCount;
-				$this->KelasNama->Count = $this->TotalCount;
-				$this->NomorInduk->Count = $this->TotalCount;
-				$this->SiswaNama->Count = $this->TotalCount;
-				$this->IuranNama->Count = $this->TotalCount;
-				$this->Periode->Count = $this->TotalCount;
-				$this->PeriodeBulan->Count = $this->TotalCount;
-				$this->JumlahBayar->Count = $this->TotalCount;
-				$this->JumlahBayar->SumValue = $rsagg->fields("sum_jumlahbayar");
+				$this->tahunajaran->Count = $this->TotalCount;
+				$this->sekolahnama->Count = $this->TotalCount;
+				$this->kelasnama->Count = $this->TotalCount;
+				$this->nomorinduk->Count = $this->TotalCount;
+				$this->siswanama->Count = $this->TotalCount;
+				$this->iurannama->Count = $this->TotalCount;
+				$this->periodebayar->Count = $this->TotalCount;
+				$this->jumlah_total->Count = $this->TotalCount;
+				$this->jumlah_total->SumValue = $rsagg->fields("sum_jumlah_total");
 				$rsagg->close();
 				$hasSummary = TRUE;
 			}
@@ -935,201 +884,197 @@ class r102_lap_tunggak_summary extends r102_lap_tunggak
 				$sql = BuildReportSql($this->getSqlSelect(), $this->getSqlWhere(), $this->getSqlGroupBy(), $this->getSqlHaving(), "", $this->Filter, "");
 				$rs = $this->getRecordset($sql);
 				$this->DetailRecords = $rs ? $rs->getRows() : [];
-			$this->JumlahBayar->getSum($this->DetailRecords);
+			$this->jumlah_total->getSum($this->DetailRecords);
 			}
 		}
 
 		// Call Row_Rendering event
 		$this->Row_Rendering();
 
-		// keterangan
-		// IuranNama2
-		// Jumlah
-		// TahunAjaran
-		// SekolahNama
-		// KelasNama
-		// NomorInduk
-		// SiswaNama
-		// IuranNama
-		// Periode
-		// PeriodeBulan
-		// JumlahBayar
+		// tahunajaran
+		// sekolahnama
+		// kelasnama
+		// nomorinduk
+		// siswanama
+		// iurannama
+		// periodebayar
+		// jumlah_total
 
 		if ($this->RowType == ROWTYPE_SEARCH) { // Search row
 
-			// TahunAjaran
-			$this->TahunAjaran->EditCustomAttributes = "";
-			$curVal = trim(strval($this->TahunAjaran->AdvancedSearch->SearchValue));
+			// tahunajaran
+			$this->tahunajaran->EditCustomAttributes = "";
+			$curVal = trim(strval($this->tahunajaran->AdvancedSearch->SearchValue));
 			if ($curVal != "")
-				$this->TahunAjaran->AdvancedSearch->ViewValue = $this->TahunAjaran->lookupCacheOption($curVal);
+				$this->tahunajaran->AdvancedSearch->ViewValue = $this->tahunajaran->lookupCacheOption($curVal);
 			else
-				$this->TahunAjaran->AdvancedSearch->ViewValue = $this->TahunAjaran->Lookup !== NULL && is_array($this->TahunAjaran->Lookup->Options) ? $curVal : NULL;
-			if ($this->TahunAjaran->AdvancedSearch->ViewValue !== NULL) { // Load from cache
-				$this->TahunAjaran->EditValue = array_values($this->TahunAjaran->Lookup->Options);
-				if ($this->TahunAjaran->AdvancedSearch->ViewValue == "")
-					$this->TahunAjaran->AdvancedSearch->ViewValue = $Language->phrase("PleaseSelect");
+				$this->tahunajaran->AdvancedSearch->ViewValue = $this->tahunajaran->Lookup !== NULL && is_array($this->tahunajaran->Lookup->Options) ? $curVal : NULL;
+			if ($this->tahunajaran->AdvancedSearch->ViewValue !== NULL) { // Load from cache
+				$this->tahunajaran->EditValue = array_values($this->tahunajaran->Lookup->Options);
+				if ($this->tahunajaran->AdvancedSearch->ViewValue == "")
+					$this->tahunajaran->AdvancedSearch->ViewValue = $Language->phrase("PleaseSelect");
 			} else { // Lookup from database
 				if ($curVal == "") {
 					$filterWrk = "0=1";
 				} else {
-					$filterWrk = "`TahunAjaran`" . SearchString("=", $this->TahunAjaran->AdvancedSearch->SearchValue, DATATYPE_STRING, "");
+					$filterWrk = "`tahunajaran`" . SearchString("=", $this->tahunajaran->AdvancedSearch->SearchValue, DATATYPE_STRING, "");
 				}
-				$sqlWrk = $this->TahunAjaran->Lookup->getSql(TRUE, $filterWrk, '', $this);
+				$sqlWrk = $this->tahunajaran->Lookup->getSql(TRUE, $filterWrk, '', $this);
 				$rswrk = Conn()->execute($sqlWrk);
 				if ($rswrk && !$rswrk->EOF) { // Lookup values found
 					$arwrk = [];
 					$arwrk[1] = HtmlEncode($rswrk->fields('df'));
-					$this->TahunAjaran->AdvancedSearch->ViewValue = $this->TahunAjaran->displayValue($arwrk);
+					$this->tahunajaran->AdvancedSearch->ViewValue = $this->tahunajaran->displayValue($arwrk);
 				} else {
-					$this->TahunAjaran->AdvancedSearch->ViewValue = $Language->phrase("PleaseSelect");
+					$this->tahunajaran->AdvancedSearch->ViewValue = $Language->phrase("PleaseSelect");
 				}
 				$arwrk = $rswrk ? $rswrk->getRows() : [];
 				if ($rswrk)
 					$rswrk->close();
-				$this->TahunAjaran->EditValue = $arwrk;
+				$this->tahunajaran->EditValue = $arwrk;
 			}
 
-			// SekolahNama
-			$this->SekolahNama->EditCustomAttributes = "";
-			$curVal = trim(strval($this->SekolahNama->AdvancedSearch->SearchValue));
+			// sekolahnama
+			$this->sekolahnama->EditCustomAttributes = "";
+			$curVal = trim(strval($this->sekolahnama->AdvancedSearch->SearchValue));
 			if ($curVal != "")
-				$this->SekolahNama->AdvancedSearch->ViewValue = $this->SekolahNama->lookupCacheOption($curVal);
+				$this->sekolahnama->AdvancedSearch->ViewValue = $this->sekolahnama->lookupCacheOption($curVal);
 			else
-				$this->SekolahNama->AdvancedSearch->ViewValue = $this->SekolahNama->Lookup !== NULL && is_array($this->SekolahNama->Lookup->Options) ? $curVal : NULL;
-			if ($this->SekolahNama->AdvancedSearch->ViewValue !== NULL) { // Load from cache
-				$this->SekolahNama->EditValue = array_values($this->SekolahNama->Lookup->Options);
-				if ($this->SekolahNama->AdvancedSearch->ViewValue == "")
-					$this->SekolahNama->AdvancedSearch->ViewValue = $Language->phrase("PleaseSelect");
+				$this->sekolahnama->AdvancedSearch->ViewValue = $this->sekolahnama->Lookup !== NULL && is_array($this->sekolahnama->Lookup->Options) ? $curVal : NULL;
+			if ($this->sekolahnama->AdvancedSearch->ViewValue !== NULL) { // Load from cache
+				$this->sekolahnama->EditValue = array_values($this->sekolahnama->Lookup->Options);
+				if ($this->sekolahnama->AdvancedSearch->ViewValue == "")
+					$this->sekolahnama->AdvancedSearch->ViewValue = $Language->phrase("PleaseSelect");
 			} else { // Lookup from database
 				if ($curVal == "") {
 					$filterWrk = "0=1";
 				} else {
-					$filterWrk = "`SekolahNama`" . SearchString("=", $this->SekolahNama->AdvancedSearch->SearchValue, DATATYPE_STRING, "");
+					$filterWrk = "`sekolahnama`" . SearchString("=", $this->sekolahnama->AdvancedSearch->SearchValue, DATATYPE_STRING, "");
 				}
-				$sqlWrk = $this->SekolahNama->Lookup->getSql(TRUE, $filterWrk, '', $this);
+				$sqlWrk = $this->sekolahnama->Lookup->getSql(TRUE, $filterWrk, '', $this);
 				$rswrk = Conn()->execute($sqlWrk);
 				if ($rswrk && !$rswrk->EOF) { // Lookup values found
 					$arwrk = [];
 					$arwrk[1] = HtmlEncode($rswrk->fields('df'));
-					$this->SekolahNama->AdvancedSearch->ViewValue = $this->SekolahNama->displayValue($arwrk);
+					$this->sekolahnama->AdvancedSearch->ViewValue = $this->sekolahnama->displayValue($arwrk);
 				} else {
-					$this->SekolahNama->AdvancedSearch->ViewValue = $Language->phrase("PleaseSelect");
+					$this->sekolahnama->AdvancedSearch->ViewValue = $Language->phrase("PleaseSelect");
 				}
 				$arwrk = $rswrk ? $rswrk->getRows() : [];
 				if ($rswrk)
 					$rswrk->close();
-				$this->SekolahNama->EditValue = $arwrk;
+				$this->sekolahnama->EditValue = $arwrk;
 			}
 
-			// KelasNama
-			$this->KelasNama->EditCustomAttributes = "";
-			$curVal = trim(strval($this->KelasNama->AdvancedSearch->SearchValue));
+			// kelasnama
+			$this->kelasnama->EditCustomAttributes = "";
+			$curVal = trim(strval($this->kelasnama->AdvancedSearch->SearchValue));
 			if ($curVal != "")
-				$this->KelasNama->AdvancedSearch->ViewValue = $this->KelasNama->lookupCacheOption($curVal);
+				$this->kelasnama->AdvancedSearch->ViewValue = $this->kelasnama->lookupCacheOption($curVal);
 			else
-				$this->KelasNama->AdvancedSearch->ViewValue = $this->KelasNama->Lookup !== NULL && is_array($this->KelasNama->Lookup->Options) ? $curVal : NULL;
-			if ($this->KelasNama->AdvancedSearch->ViewValue !== NULL) { // Load from cache
-				$this->KelasNama->EditValue = array_values($this->KelasNama->Lookup->Options);
-				if ($this->KelasNama->AdvancedSearch->ViewValue == "")
-					$this->KelasNama->AdvancedSearch->ViewValue = $Language->phrase("PleaseSelect");
+				$this->kelasnama->AdvancedSearch->ViewValue = $this->kelasnama->Lookup !== NULL && is_array($this->kelasnama->Lookup->Options) ? $curVal : NULL;
+			if ($this->kelasnama->AdvancedSearch->ViewValue !== NULL) { // Load from cache
+				$this->kelasnama->EditValue = array_values($this->kelasnama->Lookup->Options);
+				if ($this->kelasnama->AdvancedSearch->ViewValue == "")
+					$this->kelasnama->AdvancedSearch->ViewValue = $Language->phrase("PleaseSelect");
 			} else { // Lookup from database
 				if ($curVal == "") {
 					$filterWrk = "0=1";
 				} else {
-					$filterWrk = "`KelasNama`" . SearchString("=", $this->KelasNama->AdvancedSearch->SearchValue, DATATYPE_STRING, "");
+					$filterWrk = "`kelasnama`" . SearchString("=", $this->kelasnama->AdvancedSearch->SearchValue, DATATYPE_STRING, "");
 				}
-				$sqlWrk = $this->KelasNama->Lookup->getSql(TRUE, $filterWrk, '', $this);
+				$sqlWrk = $this->kelasnama->Lookup->getSql(TRUE, $filterWrk, '', $this);
 				$rswrk = Conn()->execute($sqlWrk);
 				if ($rswrk && !$rswrk->EOF) { // Lookup values found
 					$arwrk = [];
 					$arwrk[1] = HtmlEncode($rswrk->fields('df'));
-					$this->KelasNama->AdvancedSearch->ViewValue = $this->KelasNama->displayValue($arwrk);
+					$this->kelasnama->AdvancedSearch->ViewValue = $this->kelasnama->displayValue($arwrk);
 				} else {
-					$this->KelasNama->AdvancedSearch->ViewValue = $Language->phrase("PleaseSelect");
+					$this->kelasnama->AdvancedSearch->ViewValue = $Language->phrase("PleaseSelect");
 				}
 				$arwrk = $rswrk ? $rswrk->getRows() : [];
 				if ($rswrk)
 					$rswrk->close();
-				$this->KelasNama->EditValue = $arwrk;
+				$this->kelasnama->EditValue = $arwrk;
 			}
 
-			// NomorInduk
-			$this->NomorInduk->EditCustomAttributes = "";
-			$curVal = trim(strval($this->NomorInduk->AdvancedSearch->SearchValue));
+			// nomorinduk
+			$this->nomorinduk->EditCustomAttributes = "";
+			$curVal = trim(strval($this->nomorinduk->AdvancedSearch->SearchValue));
 			if ($curVal != "")
-				$this->NomorInduk->AdvancedSearch->ViewValue = $this->NomorInduk->lookupCacheOption($curVal);
+				$this->nomorinduk->AdvancedSearch->ViewValue = $this->nomorinduk->lookupCacheOption($curVal);
 			else
-				$this->NomorInduk->AdvancedSearch->ViewValue = $this->NomorInduk->Lookup !== NULL && is_array($this->NomorInduk->Lookup->Options) ? $curVal : NULL;
-			if ($this->NomorInduk->AdvancedSearch->ViewValue !== NULL) { // Load from cache
-				$this->NomorInduk->EditValue = array_values($this->NomorInduk->Lookup->Options);
-				if ($this->NomorInduk->AdvancedSearch->ViewValue == "")
-					$this->NomorInduk->AdvancedSearch->ViewValue = $Language->phrase("PleaseSelect");
+				$this->nomorinduk->AdvancedSearch->ViewValue = $this->nomorinduk->Lookup !== NULL && is_array($this->nomorinduk->Lookup->Options) ? $curVal : NULL;
+			if ($this->nomorinduk->AdvancedSearch->ViewValue !== NULL) { // Load from cache
+				$this->nomorinduk->EditValue = array_values($this->nomorinduk->Lookup->Options);
+				if ($this->nomorinduk->AdvancedSearch->ViewValue == "")
+					$this->nomorinduk->AdvancedSearch->ViewValue = $Language->phrase("PleaseSelect");
 			} else { // Lookup from database
 				if ($curVal == "") {
 					$filterWrk = "0=1";
 				} else {
-					$filterWrk = "`NomorInduk`" . SearchString("=", $this->NomorInduk->AdvancedSearch->SearchValue, DATATYPE_STRING, "");
+					$filterWrk = "`nomorinduk`" . SearchString("=", $this->nomorinduk->AdvancedSearch->SearchValue, DATATYPE_STRING, "");
 				}
-				$sqlWrk = $this->NomorInduk->Lookup->getSql(TRUE, $filterWrk, '', $this);
-				$rswrk = Conn()->execute($sqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$arwrk = [];
-					$arwrk[1] = HtmlEncode($rswrk->fields('df'));
-					$arwrk[2] = HtmlEncode($rswrk->fields('df2'));
-					$this->NomorInduk->AdvancedSearch->ViewValue = $this->NomorInduk->displayValue($arwrk);
-				} else {
-					$this->NomorInduk->AdvancedSearch->ViewValue = $Language->phrase("PleaseSelect");
-				}
-				$arwrk = $rswrk ? $rswrk->getRows() : [];
-				if ($rswrk)
-					$rswrk->close();
-				$this->NomorInduk->EditValue = $arwrk;
-			}
-
-			// SiswaNama
-			$this->SiswaNama->EditCustomAttributes = "";
-			$curVal = trim(strval($this->SiswaNama->AdvancedSearch->SearchValue));
-			if ($curVal != "")
-				$this->SiswaNama->AdvancedSearch->ViewValue = $this->SiswaNama->lookupCacheOption($curVal);
-			else
-				$this->SiswaNama->AdvancedSearch->ViewValue = $this->SiswaNama->Lookup !== NULL && is_array($this->SiswaNama->Lookup->Options) ? $curVal : NULL;
-			if ($this->SiswaNama->AdvancedSearch->ViewValue !== NULL) { // Load from cache
-				$this->SiswaNama->EditValue = array_values($this->SiswaNama->Lookup->Options);
-				if ($this->SiswaNama->AdvancedSearch->ViewValue == "")
-					$this->SiswaNama->AdvancedSearch->ViewValue = $Language->phrase("PleaseSelect");
-			} else { // Lookup from database
-				if ($curVal == "") {
-					$filterWrk = "0=1";
-				} else {
-					$filterWrk = "`SiswaNama`" . SearchString("=", $this->SiswaNama->AdvancedSearch->SearchValue, DATATYPE_STRING, "");
-				}
-				$sqlWrk = $this->SiswaNama->Lookup->getSql(TRUE, $filterWrk, '', $this);
+				$sqlWrk = $this->nomorinduk->Lookup->getSql(TRUE, $filterWrk, '', $this);
 				$rswrk = Conn()->execute($sqlWrk);
 				if ($rswrk && !$rswrk->EOF) { // Lookup values found
 					$arwrk = [];
 					$arwrk[1] = HtmlEncode($rswrk->fields('df'));
 					$arwrk[2] = HtmlEncode($rswrk->fields('df2'));
-					$this->SiswaNama->AdvancedSearch->ViewValue = $this->SiswaNama->displayValue($arwrk);
+					$this->nomorinduk->AdvancedSearch->ViewValue = $this->nomorinduk->displayValue($arwrk);
 				} else {
-					$this->SiswaNama->AdvancedSearch->ViewValue = $Language->phrase("PleaseSelect");
+					$this->nomorinduk->AdvancedSearch->ViewValue = $Language->phrase("PleaseSelect");
 				}
 				$arwrk = $rswrk ? $rswrk->getRows() : [];
 				if ($rswrk)
 					$rswrk->close();
-				$this->SiswaNama->EditValue = $arwrk;
+				$this->nomorinduk->EditValue = $arwrk;
 			}
 
-			// IuranNama
-			$this->IuranNama->EditCustomAttributes = "";
-			$curVal = trim(strval($this->IuranNama->AdvancedSearch->SearchValue));
+			// siswanama
+			$this->siswanama->EditCustomAttributes = "";
+			$curVal = trim(strval($this->siswanama->AdvancedSearch->SearchValue));
 			if ($curVal != "")
-				$this->IuranNama->AdvancedSearch->ViewValue = $this->IuranNama->lookupCacheOption($curVal);
+				$this->siswanama->AdvancedSearch->ViewValue = $this->siswanama->lookupCacheOption($curVal);
 			else
-				$this->IuranNama->AdvancedSearch->ViewValue = $this->IuranNama->Lookup !== NULL && is_array($this->IuranNama->Lookup->Options) ? $curVal : NULL;
-			if ($this->IuranNama->AdvancedSearch->ViewValue !== NULL) { // Load from cache
-				$this->IuranNama->EditValue = array_values($this->IuranNama->Lookup->Options);
-				if ($this->IuranNama->AdvancedSearch->ViewValue == "")
-					$this->IuranNama->AdvancedSearch->ViewValue = $Language->phrase("PleaseSelect");
+				$this->siswanama->AdvancedSearch->ViewValue = $this->siswanama->Lookup !== NULL && is_array($this->siswanama->Lookup->Options) ? $curVal : NULL;
+			if ($this->siswanama->AdvancedSearch->ViewValue !== NULL) { // Load from cache
+				$this->siswanama->EditValue = array_values($this->siswanama->Lookup->Options);
+				if ($this->siswanama->AdvancedSearch->ViewValue == "")
+					$this->siswanama->AdvancedSearch->ViewValue = $Language->phrase("PleaseSelect");
+			} else { // Lookup from database
+				if ($curVal == "") {
+					$filterWrk = "0=1";
+				} else {
+					$filterWrk = "`siswanama`" . SearchString("=", $this->siswanama->AdvancedSearch->SearchValue, DATATYPE_STRING, "");
+				}
+				$sqlWrk = $this->siswanama->Lookup->getSql(TRUE, $filterWrk, '', $this);
+				$rswrk = Conn()->execute($sqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$arwrk = [];
+					$arwrk[1] = HtmlEncode($rswrk->fields('df'));
+					$arwrk[2] = HtmlEncode($rswrk->fields('df2'));
+					$this->siswanama->AdvancedSearch->ViewValue = $this->siswanama->displayValue($arwrk);
+				} else {
+					$this->siswanama->AdvancedSearch->ViewValue = $Language->phrase("PleaseSelect");
+				}
+				$arwrk = $rswrk ? $rswrk->getRows() : [];
+				if ($rswrk)
+					$rswrk->close();
+				$this->siswanama->EditValue = $arwrk;
+			}
+
+			// iurannama
+			$this->iurannama->EditCustomAttributes = "";
+			$curVal = trim(strval($this->iurannama->AdvancedSearch->SearchValue));
+			if ($curVal != "")
+				$this->iurannama->AdvancedSearch->ViewValue = $this->iurannama->lookupCacheOption($curVal);
+			else
+				$this->iurannama->AdvancedSearch->ViewValue = $this->iurannama->Lookup !== NULL && is_array($this->iurannama->Lookup->Options) ? $curVal : NULL;
+			if ($this->iurannama->AdvancedSearch->ViewValue !== NULL) { // Load from cache
+				$this->iurannama->EditValue = array_values($this->iurannama->Lookup->Options);
+				if ($this->iurannama->AdvancedSearch->ViewValue == "")
+					$this->iurannama->AdvancedSearch->ViewValue = $Language->phrase("PleaseSelect");
 			} else { // Lookup from database
 				if ($curVal == "") {
 					$filterWrk = "0=1";
@@ -1139,60 +1084,56 @@ class r102_lap_tunggak_summary extends r102_lap_tunggak
 					foreach ($arwrk as $wrk) {
 						if ($filterWrk != "")
 							$filterWrk .= " OR ";
-						$filterWrk .= "`IuranNama`" . SearchString("=", trim($wrk), DATATYPE_STRING, "");
+						$filterWrk .= "`iurannama`" . SearchString("=", trim($wrk), DATATYPE_STRING, "");
 					}
 				}
-				$sqlWrk = $this->IuranNama->Lookup->getSql(TRUE, $filterWrk, '', $this);
+				$sqlWrk = $this->iurannama->Lookup->getSql(TRUE, $filterWrk, '', $this);
 				$rswrk = Conn()->execute($sqlWrk);
 				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->IuranNama->AdvancedSearch->ViewValue = new OptionValues();
+					$this->iurannama->AdvancedSearch->ViewValue = new OptionValues();
 					$ari = 0;
 					while (!$rswrk->EOF) {
 						$arwrk = [];
 						$arwrk[1] = HtmlEncode($rswrk->fields('df'));
-						$this->IuranNama->AdvancedSearch->ViewValue->add($this->IuranNama->displayValue($arwrk));
+						$this->iurannama->AdvancedSearch->ViewValue->add($this->iurannama->displayValue($arwrk));
 						$rswrk->MoveNext();
 						$ari++;
 					}
 					$rswrk->MoveFirst();
 				} else {
-					$this->IuranNama->AdvancedSearch->ViewValue = $Language->phrase("PleaseSelect");
+					$this->iurannama->AdvancedSearch->ViewValue = $Language->phrase("PleaseSelect");
 				}
 				$arwrk = $rswrk ? $rswrk->getRows() : [];
 				if ($rswrk)
 					$rswrk->close();
-				$this->IuranNama->EditValue = $arwrk;
+				$this->iurannama->EditValue = $arwrk;
 			}
 
-			// Periode
-			$this->Periode->EditCustomAttributes = "";
-			$curVal = trim(strval($this->Periode->AdvancedSearch->SearchValue));
+			// periodebayar
+			$this->periodebayar->EditCustomAttributes = "";
+			$curVal = trim(strval($this->periodebayar->AdvancedSearch->SearchValue));
 			if ($curVal != "")
-				$this->Periode->AdvancedSearch->ViewValue = $this->Periode->lookupCacheOption($curVal);
+				$this->periodebayar->AdvancedSearch->ViewValue = $this->periodebayar->lookupCacheOption($curVal);
 			else
-				$this->Periode->AdvancedSearch->ViewValue = $this->Periode->Lookup !== NULL && is_array($this->Periode->Lookup->Options) ? $curVal : NULL;
-			if ($this->Periode->AdvancedSearch->ViewValue !== NULL) { // Load from cache
-				$this->Periode->EditValue = array_values($this->Periode->Lookup->Options);
-				if ($this->Periode->AdvancedSearch->ViewValue == "")
-					$this->Periode->AdvancedSearch->ViewValue = $Language->phrase("PleaseSelect");
+				$this->periodebayar->AdvancedSearch->ViewValue = $this->periodebayar->Lookup !== NULL && is_array($this->periodebayar->Lookup->Options) ? $curVal : NULL;
+			if ($this->periodebayar->AdvancedSearch->ViewValue !== NULL) { // Load from cache
+				$this->periodebayar->EditValue = array_values($this->periodebayar->Lookup->Options);
+				if ($this->periodebayar->AdvancedSearch->ViewValue == "")
+					$this->periodebayar->AdvancedSearch->ViewValue = $Language->phrase("PleaseSelect");
 			} else { // Lookup from database
 				if ($curVal == "") {
 					$filterWrk = "0=1";
 				} else {
-					$filterWrk = "`Periode`" . SearchString("=", $this->Periode->AdvancedSearch->SearchValue, DATATYPE_NUMBER, "");
+					$filterWrk = "`periodebayar`" . SearchString("=", $this->periodebayar->AdvancedSearch->SearchValue, DATATYPE_NUMBER, "");
 				}
-				$lookupFilter = function() {
-					return "`Periode` < `PeriodeNow`";
-				};
-				$lookupFilter = $lookupFilter->bindTo($this);
-				$sqlWrk = $this->Periode->Lookup->getSql(TRUE, $filterWrk, $lookupFilter, $this);
+				$sqlWrk = $this->periodebayar->Lookup->getSql(TRUE, $filterWrk, '', $this);
 				$rswrk = Conn()->execute($sqlWrk);
 				if ($rswrk && !$rswrk->EOF) { // Lookup values found
 					$arwrk = [];
 					$arwrk[1] = HtmlEncode(FormatNumber($rswrk->fields('df'), 0, -2, -2, -2));
-					$this->Periode->AdvancedSearch->ViewValue = $this->Periode->displayValue($arwrk);
+					$this->periodebayar->AdvancedSearch->ViewValue = $this->periodebayar->displayValue($arwrk);
 				} else {
-					$this->Periode->AdvancedSearch->ViewValue = $Language->phrase("PleaseSelect");
+					$this->periodebayar->AdvancedSearch->ViewValue = $Language->phrase("PleaseSelect");
 				}
 				$arwrk = $rswrk ? $rswrk->getRows() : [];
 				if ($rswrk)
@@ -1201,421 +1142,257 @@ class r102_lap_tunggak_summary extends r102_lap_tunggak
 				for ($i = 0; $i < $rowcnt; $i++) {
 					$arwrk[$i][1] = FormatNumber($arwrk[$i][1], 0, -2, -2, -2);
 				}
-				$this->Periode->EditValue = $arwrk;
+				$this->periodebayar->EditValue = $arwrk;
 			}
 		} elseif ($this->RowType == ROWTYPE_TOTAL && !($this->RowTotalType == ROWTOTAL_GROUP && $this->RowTotalSubType == ROWTOTAL_HEADER)) { // Summary row
 			$this->RowAttrs->prependClass(($this->RowTotalType == ROWTOTAL_PAGE || $this->RowTotalType == ROWTOTAL_GRAND) ? "ew-rpt-grp-aggregate" : ""); // Set up row class
-			if ($this->RowTotalType == ROWTOTAL_GROUP)
-				$this->RowAttrs["data-group"] = $this->keterangan->groupValue(); // Set up group attribute
-			if ($this->RowTotalType == ROWTOTAL_GROUP && $this->RowGroupLevel >= 2)
-				$this->RowAttrs["data-group-2"] = $this->IuranNama2->groupValue(); // Set up group attribute 2
-			if ($this->RowTotalType == ROWTOTAL_GROUP && $this->RowGroupLevel >= 3)
-				$this->RowAttrs["data-group-3"] = $this->Jumlah->groupValue(); // Set up group attribute 3
 
-			// keterangan
-			$this->keterangan->GroupViewValue = $this->keterangan->groupValue();
-			$this->keterangan->CellCssClass = ($this->RowGroupLevel == 1 ? "ew-rpt-grp-summary-1" : "ew-rpt-grp-field-1");
-			$this->keterangan->ViewCustomAttributes = "";
-			$this->keterangan->GroupViewValue = DisplayGroupValue($this->keterangan, $this->keterangan->GroupViewValue);
+			// jumlah_total
+			$this->jumlah_total->SumViewValue = $this->jumlah_total->SumValue;
+			$this->jumlah_total->SumViewValue = FormatNumber($this->jumlah_total->SumViewValue, 0, -2, -2, -2);
+			$this->jumlah_total->CellCssStyle .= "text-align: right;";
+			$this->jumlah_total->ViewCustomAttributes = "";
+			$this->jumlah_total->CellAttrs["class"] = ($this->RowTotalType == ROWTOTAL_PAGE || $this->RowTotalType == ROWTOTAL_GRAND) ? "ew-rpt-grp-aggregate" : "ew-rpt-grp-summary-" . $this->RowGroupLevel;
 
-			// IuranNama2
-			$this->IuranNama2->GroupViewValue = $this->IuranNama2->groupValue();
-			$this->IuranNama2->CellCssClass = ($this->RowGroupLevel == 2 ? "ew-rpt-grp-summary-2" : "ew-rpt-grp-field-2");
-			$this->IuranNama2->ViewCustomAttributes = "";
-			$this->IuranNama2->GroupViewValue = DisplayGroupValue($this->IuranNama2, $this->IuranNama2->GroupViewValue);
+			// tahunajaran
+			$this->tahunajaran->HrefValue = "";
 
-			// Jumlah
-			$this->Jumlah->GroupViewValue = $this->Jumlah->groupValue();
-			$this->Jumlah->GroupViewValue = FormatNumber($this->Jumlah->GroupViewValue, 0, -2, -2, -2);
-			$this->Jumlah->CellCssClass = ($this->RowGroupLevel == 3 ? "ew-rpt-grp-summary-3" : "ew-rpt-grp-field-3");
-			$this->Jumlah->CellCssStyle .= "text-align: right;";
-			$this->Jumlah->ViewCustomAttributes = "";
-			$this->Jumlah->GroupViewValue = DisplayGroupValue($this->Jumlah, $this->Jumlah->GroupViewValue);
+			// sekolahnama
+			$this->sekolahnama->HrefValue = "";
 
-			// JumlahBayar
-			$this->JumlahBayar->SumViewValue = $this->JumlahBayar->SumValue;
-			$this->JumlahBayar->SumViewValue = FormatNumber($this->JumlahBayar->SumViewValue, 0, -2, -2, -2);
-			$this->JumlahBayar->CellCssStyle .= "text-align: right;";
-			$this->JumlahBayar->ViewCustomAttributes = "";
-			$this->JumlahBayar->CellAttrs["class"] = ($this->RowTotalType == ROWTOTAL_PAGE || $this->RowTotalType == ROWTOTAL_GRAND) ? "ew-rpt-grp-aggregate" : "ew-rpt-grp-summary-" . $this->RowGroupLevel;
+			// kelasnama
+			$this->kelasnama->HrefValue = "";
 
-			// keterangan
-			$this->keterangan->HrefValue = "";
+			// nomorinduk
+			$this->nomorinduk->HrefValue = "";
 
-			// IuranNama2
-			$this->IuranNama2->HrefValue = "";
+			// siswanama
+			$this->siswanama->HrefValue = "";
 
-			// Jumlah
-			$this->Jumlah->HrefValue = "";
+			// iurannama
+			$this->iurannama->HrefValue = "";
 
-			// TahunAjaran
-			$this->TahunAjaran->HrefValue = "";
+			// periodebayar
+			$this->periodebayar->HrefValue = "";
 
-			// SekolahNama
-			$this->SekolahNama->HrefValue = "";
-
-			// KelasNama
-			$this->KelasNama->HrefValue = "";
-
-			// NomorInduk
-			$this->NomorInduk->HrefValue = "";
-
-			// SiswaNama
-			$this->SiswaNama->HrefValue = "";
-
-			// IuranNama
-			$this->IuranNama->HrefValue = "";
-
-			// Periode
-			$this->Periode->HrefValue = "";
-
-			// PeriodeBulan
-			$this->PeriodeBulan->HrefValue = "";
-
-			// JumlahBayar
-			$this->JumlahBayar->HrefValue = "";
+			// jumlah_total
+			$this->jumlah_total->HrefValue = "";
 		} else {
 			if ($this->RowTotalType == ROWTOTAL_GROUP && $this->RowTotalSubType == ROWTOTAL_HEADER) {
-			$this->RowAttrs["data-group"] = $this->keterangan->groupValue(); // Set up group attribute
-			if ($this->RowGroupLevel >= 2) $this->RowAttrs["data-group-2"] = $this->IuranNama2->groupValue(); // Set up group attribute 2
-			if ($this->RowGroupLevel >= 3) $this->RowAttrs["data-group-3"] = $this->Jumlah->groupValue(); // Set up group attribute 3
 			} else {
-			$this->RowAttrs["data-group"] = $this->keterangan->groupValue(); // Set up group attribute
-			$this->RowAttrs["data-group-2"] = $this->IuranNama2->groupValue(); // Set up group attribute 2
-			$this->RowAttrs["data-group-3"] = $this->Jumlah->groupValue(); // Set up group attribute 3
 			}
 
-			// keterangan
-			$this->keterangan->GroupViewValue = $this->keterangan->groupValue();
-			$this->keterangan->CellCssClass = "ew-rpt-grp-field-1";
-			$this->keterangan->ViewCustomAttributes = "";
-			$this->keterangan->GroupViewValue = DisplayGroupValue($this->keterangan, $this->keterangan->GroupViewValue);
-			if (!$this->keterangan->LevelBreak)
-				$this->keterangan->GroupViewValue = "&nbsp;";
-			else
-				$this->keterangan->LevelBreak = FALSE;
-
-			// IuranNama2
-			$this->IuranNama2->GroupViewValue = $this->IuranNama2->groupValue();
-			$this->IuranNama2->CellCssClass = "ew-rpt-grp-field-2";
-			$this->IuranNama2->ViewCustomAttributes = "";
-			$this->IuranNama2->GroupViewValue = DisplayGroupValue($this->IuranNama2, $this->IuranNama2->GroupViewValue);
-			if (!$this->IuranNama2->LevelBreak)
-				$this->IuranNama2->GroupViewValue = "&nbsp;";
-			else
-				$this->IuranNama2->LevelBreak = FALSE;
-
-			// Jumlah
-			$this->Jumlah->GroupViewValue = $this->Jumlah->groupValue();
-			$this->Jumlah->GroupViewValue = FormatNumber($this->Jumlah->GroupViewValue, 0, -2, -2, -2);
-			$this->Jumlah->CellCssClass = "ew-rpt-grp-field-3";
-			$this->Jumlah->CellCssStyle .= "text-align: right;";
-			$this->Jumlah->ViewCustomAttributes = "";
-			$this->Jumlah->GroupViewValue = DisplayGroupValue($this->Jumlah, $this->Jumlah->GroupViewValue);
-			if (!$this->Jumlah->LevelBreak)
-				$this->Jumlah->GroupViewValue = "&nbsp;";
-			else
-				$this->Jumlah->LevelBreak = FALSE;
-
-			// TahunAjaran
+			// tahunajaran
 			$arwrk = [];
-			$arwrk[1] = $this->TahunAjaran->CurrentValue;
-			$this->TahunAjaran->ViewValue = $this->TahunAjaran->displayValue($arwrk);
-			$this->TahunAjaran->CellCssClass = ($this->RecordCount % 2 != 1 ? "ew-table-alt-row" : "ew-table-row");
-			$this->TahunAjaran->ViewCustomAttributes = "";
+			$arwrk[1] = $this->tahunajaran->CurrentValue;
+			$this->tahunajaran->ViewValue = $this->tahunajaran->displayValue($arwrk);
+			$this->tahunajaran->CellCssClass = ($this->RecordCount % 2 != 1 ? "ew-table-alt-row" : "ew-table-row");
+			$this->tahunajaran->ViewCustomAttributes = "";
 
-			// SekolahNama
+			// sekolahnama
 			$arwrk = [];
-			$arwrk[1] = $this->SekolahNama->CurrentValue;
-			$this->SekolahNama->ViewValue = $this->SekolahNama->displayValue($arwrk);
-			$this->SekolahNama->CellCssClass = ($this->RecordCount % 2 != 1 ? "ew-table-alt-row" : "ew-table-row");
-			$this->SekolahNama->ViewCustomAttributes = "";
+			$arwrk[1] = $this->sekolahnama->CurrentValue;
+			$this->sekolahnama->ViewValue = $this->sekolahnama->displayValue($arwrk);
+			$this->sekolahnama->CellCssClass = ($this->RecordCount % 2 != 1 ? "ew-table-alt-row" : "ew-table-row");
+			$this->sekolahnama->ViewCustomAttributes = "";
 
-			// KelasNama
+			// kelasnama
 			$arwrk = [];
-			$arwrk[1] = $this->KelasNama->CurrentValue;
-			$this->KelasNama->ViewValue = $this->KelasNama->displayValue($arwrk);
-			$this->KelasNama->CellCssClass = ($this->RecordCount % 2 != 1 ? "ew-table-alt-row" : "ew-table-row");
-			$this->KelasNama->ViewCustomAttributes = "";
+			$arwrk[1] = $this->kelasnama->CurrentValue;
+			$this->kelasnama->ViewValue = $this->kelasnama->displayValue($arwrk);
+			$this->kelasnama->CellCssClass = ($this->RecordCount % 2 != 1 ? "ew-table-alt-row" : "ew-table-row");
+			$this->kelasnama->ViewCustomAttributes = "";
 
-			// NomorInduk
+			// nomorinduk
 			$arwrk = [];
-			$arwrk[1] = $this->NomorInduk->CurrentValue;
-			$arwrk[2] = $this->SiswaNama->CurrentValue;
-			$this->NomorInduk->ViewValue = $this->NomorInduk->displayValue($arwrk);
-			$this->NomorInduk->CellCssClass = ($this->RecordCount % 2 != 1 ? "ew-table-alt-row" : "ew-table-row");
-			$this->NomorInduk->ViewCustomAttributes = "";
+			$arwrk[1] = $this->nomorinduk->CurrentValue;
+			$arwrk[2] = $this->siswanama->CurrentValue;
+			$this->nomorinduk->ViewValue = $this->nomorinduk->displayValue($arwrk);
+			$this->nomorinduk->CellCssClass = ($this->RecordCount % 2 != 1 ? "ew-table-alt-row" : "ew-table-row");
+			$this->nomorinduk->ViewCustomAttributes = "";
 
-			// SiswaNama
+			// siswanama
 			$arwrk = [];
-			$arwrk[1] = $this->NomorInduk->CurrentValue;
-			$arwrk[2] = $this->SiswaNama->CurrentValue;
-			$this->SiswaNama->ViewValue = $this->SiswaNama->displayValue($arwrk);
-			$this->SiswaNama->CellCssClass = ($this->RecordCount % 2 != 1 ? "ew-table-alt-row" : "ew-table-row");
-			$this->SiswaNama->ViewCustomAttributes = "";
+			$arwrk[1] = $this->nomorinduk->CurrentValue;
+			$arwrk[2] = $this->siswanama->CurrentValue;
+			$this->siswanama->ViewValue = $this->siswanama->displayValue($arwrk);
+			$this->siswanama->CellCssClass = ($this->RecordCount % 2 != 1 ? "ew-table-alt-row" : "ew-table-row");
+			$this->siswanama->ViewCustomAttributes = "";
 
-			// IuranNama
-			$curVal = strval($this->IuranNama->CurrentValue);
+			// iurannama
+			$curVal = strval($this->iurannama->CurrentValue);
 			if ($curVal != "") {
-				$this->IuranNama->ViewValue = $this->IuranNama->lookupCacheOption($curVal);
-				if ($this->IuranNama->ViewValue === NULL) { // Lookup from database
+				$this->iurannama->ViewValue = $this->iurannama->lookupCacheOption($curVal);
+				if ($this->iurannama->ViewValue === NULL) { // Lookup from database
 					$arwrk = explode(",", $curVal);
 					$filterWrk = "";
 					foreach ($arwrk as $wrk) {
 						if ($filterWrk != "")
 							$filterWrk .= " OR ";
-						$filterWrk .= "`IuranNama`" . SearchString("=", trim($wrk), DATATYPE_STRING, "");
+						$filterWrk .= "`iurannama`" . SearchString("=", trim($wrk), DATATYPE_STRING, "");
 					}
-					$sqlWrk = $this->IuranNama->Lookup->getSql(FALSE, $filterWrk, '', $this);
+					$sqlWrk = $this->iurannama->Lookup->getSql(FALSE, $filterWrk, '', $this);
 					$rswrk = Conn()->execute($sqlWrk);
 					if ($rswrk && !$rswrk->EOF) { // Lookup values found
-						$this->IuranNama->ViewValue = new OptionValues();
+						$this->iurannama->ViewValue = new OptionValues();
 						$ari = 0;
 						while (!$rswrk->EOF) {
 							$arwrk = [];
 							$arwrk[1] = $rswrk->fields('df');
-							$this->IuranNama->ViewValue->add($this->IuranNama->displayValue($arwrk));
+							$this->iurannama->ViewValue->add($this->iurannama->displayValue($arwrk));
 							$rswrk->MoveNext();
 							$ari++;
 						}
 						$rswrk->Close();
 					} else {
-						$this->IuranNama->ViewValue = $this->IuranNama->CurrentValue;
+						$this->iurannama->ViewValue = $this->iurannama->CurrentValue;
 					}
 				}
 			} else {
-				$this->IuranNama->ViewValue = NULL;
+				$this->iurannama->ViewValue = NULL;
 			}
-			$this->IuranNama->CellCssClass = ($this->RecordCount % 2 != 1 ? "ew-table-alt-row" : "ew-table-row");
-			$this->IuranNama->ViewCustomAttributes = "";
+			$this->iurannama->CellCssClass = ($this->RecordCount % 2 != 1 ? "ew-table-alt-row" : "ew-table-row");
+			$this->iurannama->ViewCustomAttributes = "";
 
-			// Periode
+			// periodebayar
 			$arwrk = [];
-			$arwrk[1] = FormatNumber($this->Periode->CurrentValue, 0, -2, -2, -2);
-			$this->Periode->ViewValue = $this->Periode->displayValue($arwrk);
-			$this->Periode->CellCssClass = ($this->RecordCount % 2 != 1 ? "ew-table-alt-row" : "ew-table-row");
-			$this->Periode->ViewCustomAttributes = "";
+			$arwrk[1] = FormatNumber($this->periodebayar->CurrentValue, 0, -2, -2, -2);
+			$this->periodebayar->ViewValue = $this->periodebayar->displayValue($arwrk);
+			$this->periodebayar->CellCssClass = ($this->RecordCount % 2 != 1 ? "ew-table-alt-row" : "ew-table-row");
+			$this->periodebayar->ViewCustomAttributes = "";
 
-			// PeriodeBulan
-			$this->PeriodeBulan->ViewValue = $this->PeriodeBulan->CurrentValue;
-			$this->PeriodeBulan->CellCssClass = ($this->RecordCount % 2 != 1 ? "ew-table-alt-row" : "ew-table-row");
-			$this->PeriodeBulan->ViewCustomAttributes = "";
+			// jumlah_total
+			$this->jumlah_total->ViewValue = $this->jumlah_total->CurrentValue;
+			$this->jumlah_total->ViewValue = FormatNumber($this->jumlah_total->ViewValue, 0, -2, -2, -2);
+			$this->jumlah_total->CellCssClass = ($this->RecordCount % 2 != 1 ? "ew-table-alt-row" : "ew-table-row");
+			$this->jumlah_total->CellCssStyle .= "text-align: right;";
+			$this->jumlah_total->ViewCustomAttributes = "";
 
-			// JumlahBayar
-			$this->JumlahBayar->ViewValue = $this->JumlahBayar->CurrentValue;
-			$this->JumlahBayar->ViewValue = FormatNumber($this->JumlahBayar->ViewValue, 0, -2, -2, -2);
-			$this->JumlahBayar->CellCssClass = ($this->RecordCount % 2 != 1 ? "ew-table-alt-row" : "ew-table-row");
-			$this->JumlahBayar->CellCssStyle .= "text-align: right;";
-			$this->JumlahBayar->ViewCustomAttributes = "";
+			// tahunajaran
+			$this->tahunajaran->LinkCustomAttributes = "";
+			$this->tahunajaran->HrefValue = "";
+			$this->tahunajaran->TooltipValue = "";
 
-			// keterangan
-			$this->keterangan->LinkCustomAttributes = "";
-			$this->keterangan->HrefValue = "";
-			$this->keterangan->TooltipValue = "";
+			// sekolahnama
+			$this->sekolahnama->LinkCustomAttributes = "";
+			$this->sekolahnama->HrefValue = "";
+			$this->sekolahnama->TooltipValue = "";
 
-			// IuranNama2
-			$this->IuranNama2->LinkCustomAttributes = "";
-			$this->IuranNama2->HrefValue = "";
-			$this->IuranNama2->TooltipValue = "";
+			// kelasnama
+			$this->kelasnama->LinkCustomAttributes = "";
+			$this->kelasnama->HrefValue = "";
+			$this->kelasnama->TooltipValue = "";
 
-			// Jumlah
-			$this->Jumlah->LinkCustomAttributes = "";
-			$this->Jumlah->HrefValue = "";
-			$this->Jumlah->TooltipValue = "";
+			// nomorinduk
+			$this->nomorinduk->LinkCustomAttributes = "";
+			$this->nomorinduk->HrefValue = "";
+			$this->nomorinduk->TooltipValue = "";
 
-			// TahunAjaran
-			$this->TahunAjaran->LinkCustomAttributes = "";
-			$this->TahunAjaran->HrefValue = "";
-			$this->TahunAjaran->TooltipValue = "";
+			// siswanama
+			$this->siswanama->LinkCustomAttributes = "";
+			$this->siswanama->HrefValue = "";
+			$this->siswanama->TooltipValue = "";
 
-			// SekolahNama
-			$this->SekolahNama->LinkCustomAttributes = "";
-			$this->SekolahNama->HrefValue = "";
-			$this->SekolahNama->TooltipValue = "";
+			// iurannama
+			$this->iurannama->LinkCustomAttributes = "";
+			$this->iurannama->HrefValue = "";
+			$this->iurannama->TooltipValue = "";
 
-			// KelasNama
-			$this->KelasNama->LinkCustomAttributes = "";
-			$this->KelasNama->HrefValue = "";
-			$this->KelasNama->TooltipValue = "";
+			// periodebayar
+			$this->periodebayar->LinkCustomAttributes = "";
+			$this->periodebayar->HrefValue = "";
+			$this->periodebayar->TooltipValue = "";
 
-			// NomorInduk
-			$this->NomorInduk->LinkCustomAttributes = "";
-			$this->NomorInduk->HrefValue = "";
-			$this->NomorInduk->TooltipValue = "";
-
-			// SiswaNama
-			$this->SiswaNama->LinkCustomAttributes = "";
-			$this->SiswaNama->HrefValue = "";
-			$this->SiswaNama->TooltipValue = "";
-
-			// IuranNama
-			$this->IuranNama->LinkCustomAttributes = "";
-			$this->IuranNama->HrefValue = "";
-			$this->IuranNama->TooltipValue = "";
-
-			// Periode
-			$this->Periode->LinkCustomAttributes = "";
-			$this->Periode->HrefValue = "";
-			$this->Periode->TooltipValue = "";
-
-			// PeriodeBulan
-			$this->PeriodeBulan->LinkCustomAttributes = "";
-			$this->PeriodeBulan->HrefValue = "";
-			$this->PeriodeBulan->TooltipValue = "";
-
-			// JumlahBayar
-			$this->JumlahBayar->LinkCustomAttributes = "";
-			$this->JumlahBayar->HrefValue = "";
-			$this->JumlahBayar->TooltipValue = "";
+			// jumlah_total
+			$this->jumlah_total->LinkCustomAttributes = "";
+			$this->jumlah_total->HrefValue = "";
+			$this->jumlah_total->TooltipValue = "";
 		}
 
 		// Call Cell_Rendered event
 		if ($this->RowType == ROWTYPE_TOTAL) { // Summary row
 
-			// keterangan
-			$currentValue = $this->keterangan->GroupViewValue;
-			$viewValue = &$this->keterangan->GroupViewValue;
-			$viewAttrs = &$this->keterangan->ViewAttrs;
-			$cellAttrs = &$this->keterangan->CellAttrs;
-			$hrefValue = &$this->keterangan->HrefValue;
-			$linkAttrs = &$this->keterangan->LinkAttrs;
-			$this->Cell_Rendered($this->keterangan, $currentValue, $viewValue, $viewAttrs, $cellAttrs, $hrefValue, $linkAttrs);
-
-			// IuranNama2
-			$currentValue = $this->IuranNama2->GroupViewValue;
-			$viewValue = &$this->IuranNama2->GroupViewValue;
-			$viewAttrs = &$this->IuranNama2->ViewAttrs;
-			$cellAttrs = &$this->IuranNama2->CellAttrs;
-			$hrefValue = &$this->IuranNama2->HrefValue;
-			$linkAttrs = &$this->IuranNama2->LinkAttrs;
-			$this->Cell_Rendered($this->IuranNama2, $currentValue, $viewValue, $viewAttrs, $cellAttrs, $hrefValue, $linkAttrs);
-
-			// Jumlah
-			$currentValue = $this->Jumlah->GroupViewValue;
-			$viewValue = &$this->Jumlah->GroupViewValue;
-			$viewAttrs = &$this->Jumlah->ViewAttrs;
-			$cellAttrs = &$this->Jumlah->CellAttrs;
-			$hrefValue = &$this->Jumlah->HrefValue;
-			$linkAttrs = &$this->Jumlah->LinkAttrs;
-			$this->Cell_Rendered($this->Jumlah, $currentValue, $viewValue, $viewAttrs, $cellAttrs, $hrefValue, $linkAttrs);
-
-			// JumlahBayar
-			$currentValue = $this->JumlahBayar->SumValue;
-			$viewValue = &$this->JumlahBayar->SumViewValue;
-			$viewAttrs = &$this->JumlahBayar->ViewAttrs;
-			$cellAttrs = &$this->JumlahBayar->CellAttrs;
-			$hrefValue = &$this->JumlahBayar->HrefValue;
-			$linkAttrs = &$this->JumlahBayar->LinkAttrs;
-			$this->Cell_Rendered($this->JumlahBayar, $currentValue, $viewValue, $viewAttrs, $cellAttrs, $hrefValue, $linkAttrs);
+			// jumlah_total
+			$currentValue = $this->jumlah_total->SumValue;
+			$viewValue = &$this->jumlah_total->SumViewValue;
+			$viewAttrs = &$this->jumlah_total->ViewAttrs;
+			$cellAttrs = &$this->jumlah_total->CellAttrs;
+			$hrefValue = &$this->jumlah_total->HrefValue;
+			$linkAttrs = &$this->jumlah_total->LinkAttrs;
+			$this->Cell_Rendered($this->jumlah_total, $currentValue, $viewValue, $viewAttrs, $cellAttrs, $hrefValue, $linkAttrs);
 		} else {
 
-			// keterangan
-			$currentValue = $this->keterangan->groupValue();
-			$viewValue = &$this->keterangan->GroupViewValue;
-			$viewAttrs = &$this->keterangan->ViewAttrs;
-			$cellAttrs = &$this->keterangan->CellAttrs;
-			$hrefValue = &$this->keterangan->HrefValue;
-			$linkAttrs = &$this->keterangan->LinkAttrs;
-			$this->Cell_Rendered($this->keterangan, $currentValue, $viewValue, $viewAttrs, $cellAttrs, $hrefValue, $linkAttrs);
+			// tahunajaran
+			$currentValue = $this->tahunajaran->groupValue();
+			$viewValue = &$this->tahunajaran->GroupViewValue;
+			$viewAttrs = &$this->tahunajaran->ViewAttrs;
+			$cellAttrs = &$this->tahunajaran->CellAttrs;
+			$hrefValue = &$this->tahunajaran->HrefValue;
+			$linkAttrs = &$this->tahunajaran->LinkAttrs;
+			$this->Cell_Rendered($this->tahunajaran, $currentValue, $viewValue, $viewAttrs, $cellAttrs, $hrefValue, $linkAttrs);
 
-			// IuranNama2
-			$currentValue = $this->IuranNama2->groupValue();
-			$viewValue = &$this->IuranNama2->GroupViewValue;
-			$viewAttrs = &$this->IuranNama2->ViewAttrs;
-			$cellAttrs = &$this->IuranNama2->CellAttrs;
-			$hrefValue = &$this->IuranNama2->HrefValue;
-			$linkAttrs = &$this->IuranNama2->LinkAttrs;
-			$this->Cell_Rendered($this->IuranNama2, $currentValue, $viewValue, $viewAttrs, $cellAttrs, $hrefValue, $linkAttrs);
+			// sekolahnama
+			$currentValue = $this->sekolahnama->groupValue();
+			$viewValue = &$this->sekolahnama->GroupViewValue;
+			$viewAttrs = &$this->sekolahnama->ViewAttrs;
+			$cellAttrs = &$this->sekolahnama->CellAttrs;
+			$hrefValue = &$this->sekolahnama->HrefValue;
+			$linkAttrs = &$this->sekolahnama->LinkAttrs;
+			$this->Cell_Rendered($this->sekolahnama, $currentValue, $viewValue, $viewAttrs, $cellAttrs, $hrefValue, $linkAttrs);
 
-			// Jumlah
-			$currentValue = $this->Jumlah->groupValue();
-			$viewValue = &$this->Jumlah->GroupViewValue;
-			$viewAttrs = &$this->Jumlah->ViewAttrs;
-			$cellAttrs = &$this->Jumlah->CellAttrs;
-			$hrefValue = &$this->Jumlah->HrefValue;
-			$linkAttrs = &$this->Jumlah->LinkAttrs;
-			$this->Cell_Rendered($this->Jumlah, $currentValue, $viewValue, $viewAttrs, $cellAttrs, $hrefValue, $linkAttrs);
+			// kelasnama
+			$currentValue = $this->kelasnama->groupValue();
+			$viewValue = &$this->kelasnama->GroupViewValue;
+			$viewAttrs = &$this->kelasnama->ViewAttrs;
+			$cellAttrs = &$this->kelasnama->CellAttrs;
+			$hrefValue = &$this->kelasnama->HrefValue;
+			$linkAttrs = &$this->kelasnama->LinkAttrs;
+			$this->Cell_Rendered($this->kelasnama, $currentValue, $viewValue, $viewAttrs, $cellAttrs, $hrefValue, $linkAttrs);
 
-			// TahunAjaran
-			$currentValue = $this->TahunAjaran->groupValue();
-			$viewValue = &$this->TahunAjaran->GroupViewValue;
-			$viewAttrs = &$this->TahunAjaran->ViewAttrs;
-			$cellAttrs = &$this->TahunAjaran->CellAttrs;
-			$hrefValue = &$this->TahunAjaran->HrefValue;
-			$linkAttrs = &$this->TahunAjaran->LinkAttrs;
-			$this->Cell_Rendered($this->TahunAjaran, $currentValue, $viewValue, $viewAttrs, $cellAttrs, $hrefValue, $linkAttrs);
+			// nomorinduk
+			$currentValue = $this->nomorinduk->groupValue();
+			$viewValue = &$this->nomorinduk->GroupViewValue;
+			$viewAttrs = &$this->nomorinduk->ViewAttrs;
+			$cellAttrs = &$this->nomorinduk->CellAttrs;
+			$hrefValue = &$this->nomorinduk->HrefValue;
+			$linkAttrs = &$this->nomorinduk->LinkAttrs;
+			$this->Cell_Rendered($this->nomorinduk, $currentValue, $viewValue, $viewAttrs, $cellAttrs, $hrefValue, $linkAttrs);
 
-			// SekolahNama
-			$currentValue = $this->SekolahNama->groupValue();
-			$viewValue = &$this->SekolahNama->GroupViewValue;
-			$viewAttrs = &$this->SekolahNama->ViewAttrs;
-			$cellAttrs = &$this->SekolahNama->CellAttrs;
-			$hrefValue = &$this->SekolahNama->HrefValue;
-			$linkAttrs = &$this->SekolahNama->LinkAttrs;
-			$this->Cell_Rendered($this->SekolahNama, $currentValue, $viewValue, $viewAttrs, $cellAttrs, $hrefValue, $linkAttrs);
+			// siswanama
+			$currentValue = $this->siswanama->groupValue();
+			$viewValue = &$this->siswanama->GroupViewValue;
+			$viewAttrs = &$this->siswanama->ViewAttrs;
+			$cellAttrs = &$this->siswanama->CellAttrs;
+			$hrefValue = &$this->siswanama->HrefValue;
+			$linkAttrs = &$this->siswanama->LinkAttrs;
+			$this->Cell_Rendered($this->siswanama, $currentValue, $viewValue, $viewAttrs, $cellAttrs, $hrefValue, $linkAttrs);
 
-			// KelasNama
-			$currentValue = $this->KelasNama->groupValue();
-			$viewValue = &$this->KelasNama->GroupViewValue;
-			$viewAttrs = &$this->KelasNama->ViewAttrs;
-			$cellAttrs = &$this->KelasNama->CellAttrs;
-			$hrefValue = &$this->KelasNama->HrefValue;
-			$linkAttrs = &$this->KelasNama->LinkAttrs;
-			$this->Cell_Rendered($this->KelasNama, $currentValue, $viewValue, $viewAttrs, $cellAttrs, $hrefValue, $linkAttrs);
+			// iurannama
+			$currentValue = $this->iurannama->groupValue();
+			$viewValue = &$this->iurannama->GroupViewValue;
+			$viewAttrs = &$this->iurannama->ViewAttrs;
+			$cellAttrs = &$this->iurannama->CellAttrs;
+			$hrefValue = &$this->iurannama->HrefValue;
+			$linkAttrs = &$this->iurannama->LinkAttrs;
+			$this->Cell_Rendered($this->iurannama, $currentValue, $viewValue, $viewAttrs, $cellAttrs, $hrefValue, $linkAttrs);
 
-			// NomorInduk
-			$currentValue = $this->NomorInduk->groupValue();
-			$viewValue = &$this->NomorInduk->GroupViewValue;
-			$viewAttrs = &$this->NomorInduk->ViewAttrs;
-			$cellAttrs = &$this->NomorInduk->CellAttrs;
-			$hrefValue = &$this->NomorInduk->HrefValue;
-			$linkAttrs = &$this->NomorInduk->LinkAttrs;
-			$this->Cell_Rendered($this->NomorInduk, $currentValue, $viewValue, $viewAttrs, $cellAttrs, $hrefValue, $linkAttrs);
+			// periodebayar
+			$currentValue = $this->periodebayar->groupValue();
+			$viewValue = &$this->periodebayar->GroupViewValue;
+			$viewAttrs = &$this->periodebayar->ViewAttrs;
+			$cellAttrs = &$this->periodebayar->CellAttrs;
+			$hrefValue = &$this->periodebayar->HrefValue;
+			$linkAttrs = &$this->periodebayar->LinkAttrs;
+			$this->Cell_Rendered($this->periodebayar, $currentValue, $viewValue, $viewAttrs, $cellAttrs, $hrefValue, $linkAttrs);
 
-			// SiswaNama
-			$currentValue = $this->SiswaNama->groupValue();
-			$viewValue = &$this->SiswaNama->GroupViewValue;
-			$viewAttrs = &$this->SiswaNama->ViewAttrs;
-			$cellAttrs = &$this->SiswaNama->CellAttrs;
-			$hrefValue = &$this->SiswaNama->HrefValue;
-			$linkAttrs = &$this->SiswaNama->LinkAttrs;
-			$this->Cell_Rendered($this->SiswaNama, $currentValue, $viewValue, $viewAttrs, $cellAttrs, $hrefValue, $linkAttrs);
-
-			// IuranNama
-			$currentValue = $this->IuranNama->groupValue();
-			$viewValue = &$this->IuranNama->GroupViewValue;
-			$viewAttrs = &$this->IuranNama->ViewAttrs;
-			$cellAttrs = &$this->IuranNama->CellAttrs;
-			$hrefValue = &$this->IuranNama->HrefValue;
-			$linkAttrs = &$this->IuranNama->LinkAttrs;
-			$this->Cell_Rendered($this->IuranNama, $currentValue, $viewValue, $viewAttrs, $cellAttrs, $hrefValue, $linkAttrs);
-
-			// Periode
-			$currentValue = $this->Periode->groupValue();
-			$viewValue = &$this->Periode->GroupViewValue;
-			$viewAttrs = &$this->Periode->ViewAttrs;
-			$cellAttrs = &$this->Periode->CellAttrs;
-			$hrefValue = &$this->Periode->HrefValue;
-			$linkAttrs = &$this->Periode->LinkAttrs;
-			$this->Cell_Rendered($this->Periode, $currentValue, $viewValue, $viewAttrs, $cellAttrs, $hrefValue, $linkAttrs);
-
-			// PeriodeBulan
-			$currentValue = $this->PeriodeBulan->groupValue();
-			$viewValue = &$this->PeriodeBulan->GroupViewValue;
-			$viewAttrs = &$this->PeriodeBulan->ViewAttrs;
-			$cellAttrs = &$this->PeriodeBulan->CellAttrs;
-			$hrefValue = &$this->PeriodeBulan->HrefValue;
-			$linkAttrs = &$this->PeriodeBulan->LinkAttrs;
-			$this->Cell_Rendered($this->PeriodeBulan, $currentValue, $viewValue, $viewAttrs, $cellAttrs, $hrefValue, $linkAttrs);
-
-			// JumlahBayar
-			$currentValue = $this->JumlahBayar->groupValue();
-			$viewValue = &$this->JumlahBayar->GroupViewValue;
-			$viewAttrs = &$this->JumlahBayar->ViewAttrs;
-			$cellAttrs = &$this->JumlahBayar->CellAttrs;
-			$hrefValue = &$this->JumlahBayar->HrefValue;
-			$linkAttrs = &$this->JumlahBayar->LinkAttrs;
-			$this->Cell_Rendered($this->JumlahBayar, $currentValue, $viewValue, $viewAttrs, $cellAttrs, $hrefValue, $linkAttrs);
+			// jumlah_total
+			$currentValue = $this->jumlah_total->groupValue();
+			$viewValue = &$this->jumlah_total->GroupViewValue;
+			$viewAttrs = &$this->jumlah_total->ViewAttrs;
+			$cellAttrs = &$this->jumlah_total->CellAttrs;
+			$hrefValue = &$this->jumlah_total->HrefValue;
+			$linkAttrs = &$this->jumlah_total->LinkAttrs;
+			$this->Cell_Rendered($this->jumlah_total, $currentValue, $viewValue, $viewAttrs, $cellAttrs, $hrefValue, $linkAttrs);
 		}
 
 		// Call Row_Rendered event
@@ -1664,33 +1441,21 @@ class r102_lap_tunggak_summary extends r102_lap_tunggak
 		$this->GroupColumnCount = 0;
 		$this->SubGroupColumnCount = 0;
 		$this->DetailColumnCount = 0;
-		if ($this->keterangan->Visible)
-			$this->GroupColumnCount += 1;
-		if ($this->IuranNama2->Visible) {
-			$this->GroupColumnCount += 1;
-			$this->SubGroupColumnCount += 1;
-		}
-		if ($this->Jumlah->Visible) {
-			$this->GroupColumnCount += 1;
-			$this->SubGroupColumnCount += 1;
-		}
-		if ($this->TahunAjaran->Visible)
+		if ($this->tahunajaran->Visible)
 			$this->DetailColumnCount += 1;
-		if ($this->SekolahNama->Visible)
+		if ($this->sekolahnama->Visible)
 			$this->DetailColumnCount += 1;
-		if ($this->KelasNama->Visible)
+		if ($this->kelasnama->Visible)
 			$this->DetailColumnCount += 1;
-		if ($this->NomorInduk->Visible)
+		if ($this->nomorinduk->Visible)
 			$this->DetailColumnCount += 1;
-		if ($this->SiswaNama->Visible)
+		if ($this->siswanama->Visible)
 			$this->DetailColumnCount += 1;
-		if ($this->IuranNama->Visible)
+		if ($this->iurannama->Visible)
 			$this->DetailColumnCount += 1;
-		if ($this->Periode->Visible)
+		if ($this->periodebayar->Visible)
 			$this->DetailColumnCount += 1;
-		if ($this->PeriodeBulan->Visible)
-			$this->DetailColumnCount += 1;
-		if ($this->JumlahBayar->Visible)
+		if ($this->jumlah_total->Visible)
 			$this->DetailColumnCount += 1;
 	}
 
@@ -1705,7 +1470,7 @@ class r102_lap_tunggak_summary extends r102_lap_tunggak
 		} elseif (SameText($type, "pdf")) {
 			return '<a class="ew-export-link ew-pdf" title="' . HtmlEncode($Language->phrase("ExportToPDF", TRUE)) . '" data-caption="' . HtmlEncode($Language->phrase("ExportToPDF", TRUE)) . '" href="#" onclick="return ew.exportWithCharts(event, \'' . $this->ExportPdfUrl . '\', \'' . session_id() . '\');">' . $Language->phrase("ExportToPDF") . '</a>';
 		} elseif (SameText($type, "email")) {
-			return '<a class="ew-export-link ew-email" title="' . HtmlEncode($Language->phrase("ExportToEmail", TRUE)) . '" data-caption="' . HtmlEncode($Language->phrase("ExportToEmail", TRUE)) . '" id="emf_r102_lap_tunggak" href="#" onclick="return ew.emailDialogShow({ lnk: \'emf_r102_lap_tunggak\', hdr: ew.language.phrase(\'ExportToEmailText\'), url: \'' . $this->pageUrl() . 'export=email\', exportid: \'' . session_id() . '\', el: this });">' . $Language->phrase("ExportToEmail") . '</a>';
+			return '<a class="ew-export-link ew-email" title="' . HtmlEncode($Language->phrase("ExportToEmail", TRUE)) . '" data-caption="' . HtmlEncode($Language->phrase("ExportToEmail", TRUE)) . '" id="emf_r103_lap_um" href="#" onclick="return ew.emailDialogShow({ lnk: \'emf_r103_lap_um\', hdr: ew.language.phrase(\'ExportToEmailText\'), url: \'' . $this->pageUrl() . 'export=email\', exportid: \'' . session_id() . '\', el: this });">' . $Language->phrase("ExportToEmail") . '</a>';
 		} elseif (SameText($type, "print")) {
 			return "<a href=\"" . $this->ExportPrintUrl . "\" class=\"ew-export-link ew-print\" title=\"" . HtmlEncode($Language->phrase("PrinterFriendlyText")) . "\" data-caption=\"" . HtmlEncode($Language->phrase("PrinterFriendlyText")) . "\">" . $Language->phrase("PrinterFriendly") . "</a>";
 		}
@@ -1820,30 +1585,26 @@ class r102_lap_tunggak_summary extends r102_lap_tunggak
 
 			// Set up lookup SQL and connection
 			switch ($fld->FieldVar) {
-				case "x_TahunAjaran":
+				case "x_tahunajaran":
 					$conn = Conn("");
 					break;
-				case "x_SekolahNama":
+				case "x_sekolahnama":
 					$conn = Conn("");
 					break;
-				case "x_KelasNama":
+				case "x_kelasnama":
 					$conn = Conn("");
 					break;
-				case "x_NomorInduk":
+				case "x_nomorinduk":
 					$conn = Conn("");
 					break;
-				case "x_SiswaNama":
+				case "x_siswanama":
 					$conn = Conn("");
 					break;
-				case "x_IuranNama":
+				case "x_iurannama":
 					$conn = Conn("");
 					break;
-				case "x_Periode":
+				case "x_periodebayar":
 					$conn = Conn("");
-					$lookupFilter = function() {
-						return "`Periode` < `PeriodeNow`";
-					};
-					$lookupFilter = $lookupFilter->bindTo($this);
 					break;
 				default:
 					$lookupFilter = "";
@@ -1865,19 +1626,19 @@ class r102_lap_tunggak_summary extends r102_lap_tunggak
 
 					// Format the field values
 					switch ($fld->FieldVar) {
-						case "x_TahunAjaran":
+						case "x_tahunajaran":
 							break;
-						case "x_SekolahNama":
+						case "x_sekolahnama":
 							break;
-						case "x_KelasNama":
+						case "x_kelasnama":
 							break;
-						case "x_NomorInduk":
+						case "x_nomorinduk":
 							break;
-						case "x_SiswaNama":
+						case "x_siswanama":
 							break;
-						case "x_IuranNama":
+						case "x_iurannama":
 							break;
-						case "x_Periode":
+						case "x_periodebayar":
 							$row[1] = FormatNumber($row[1], 0, -2, -2, -2);
 							$row['df'] = $row[1];
 							break;
@@ -2065,7 +1826,7 @@ class r102_lap_tunggak_summary extends r102_lap_tunggak
 	protected function getSort()
 	{
 		if ($this->DrillDown)
-			return "`Periode` ASC";
+			return "";
 		$resetSort = Param("cmd") === "resetsort";
 		$orderBy = Param("order", "");
 		$orderType = Param("ordertype", "");
@@ -2077,44 +1838,30 @@ class r102_lap_tunggak_summary extends r102_lap_tunggak
 		if ($resetSort) {
 			$this->setOrderBy("");
 			$this->setStartGroup(1);
-			$this->keterangan->setSort("");
-			$this->IuranNama2->setSort("");
-			$this->Jumlah->setSort("");
-			$this->TahunAjaran->setSort("");
-			$this->SekolahNama->setSort("");
-			$this->KelasNama->setSort("");
-			$this->NomorInduk->setSort("");
-			$this->SiswaNama->setSort("");
-			$this->IuranNama->setSort("");
-			$this->Periode->setSort("");
-			$this->PeriodeBulan->setSort("");
-			$this->JumlahBayar->setSort("");
+			$this->tahunajaran->setSort("");
+			$this->sekolahnama->setSort("");
+			$this->kelasnama->setSort("");
+			$this->nomorinduk->setSort("");
+			$this->siswanama->setSort("");
+			$this->iurannama->setSort("");
+			$this->periodebayar->setSort("");
+			$this->jumlah_total->setSort("");
 
 		// Check for an Order parameter
 		} elseif ($orderBy != "") {
 			$this->CurrentOrder = $orderBy;
 			$this->CurrentOrderType = $orderType;
-			$this->updateSort($this->keterangan, $ctrl); // keterangan
-			$this->updateSort($this->IuranNama2, $ctrl); // IuranNama2
-			$this->updateSort($this->Jumlah, $ctrl); // Jumlah
-			$this->updateSort($this->TahunAjaran, $ctrl); // TahunAjaran
-			$this->updateSort($this->SekolahNama, $ctrl); // SekolahNama
-			$this->updateSort($this->KelasNama, $ctrl); // KelasNama
-			$this->updateSort($this->NomorInduk, $ctrl); // NomorInduk
-			$this->updateSort($this->SiswaNama, $ctrl); // SiswaNama
-			$this->updateSort($this->IuranNama, $ctrl); // IuranNama
-			$this->updateSort($this->Periode, $ctrl); // Periode
-			$this->updateSort($this->PeriodeBulan, $ctrl); // PeriodeBulan
-			$this->updateSort($this->JumlahBayar, $ctrl); // JumlahBayar
+			$this->updateSort($this->tahunajaran, $ctrl); // tahunajaran
+			$this->updateSort($this->sekolahnama, $ctrl); // sekolahnama
+			$this->updateSort($this->kelasnama, $ctrl); // kelasnama
+			$this->updateSort($this->nomorinduk, $ctrl); // nomorinduk
+			$this->updateSort($this->siswanama, $ctrl); // siswanama
+			$this->updateSort($this->iurannama, $ctrl); // iurannama
+			$this->updateSort($this->periodebayar, $ctrl); // periodebayar
+			$this->updateSort($this->jumlah_total, $ctrl); // jumlah_total
 			$sortSql = $this->sortSql();
 			$this->setOrderBy($sortSql);
 			$this->setStartGroup(1);
-		}
-
-		// Set up default sort
-		if ($this->getOrderBy() == "") {
-			$this->setOrderBy("`Periode` ASC");
-			$this->Periode->setSort("ASC");
 		}
 		return $this->getOrderBy();
 	}
@@ -2133,37 +1880,37 @@ class r102_lap_tunggak_summary extends r102_lap_tunggak
 		if (Get("cmd", "") == "reset") {
 
 			// Set default values
-			$this->TahunAjaran->AdvancedSearch->unsetSession();
-			$this->SekolahNama->AdvancedSearch->unsetSession();
-			$this->KelasNama->AdvancedSearch->unsetSession();
-			$this->NomorInduk->AdvancedSearch->unsetSession();
-			$this->SiswaNama->AdvancedSearch->unsetSession();
-			$this->IuranNama->AdvancedSearch->unsetSession();
-			$this->Periode->AdvancedSearch->unsetSession();
+			$this->tahunajaran->AdvancedSearch->unsetSession();
+			$this->sekolahnama->AdvancedSearch->unsetSession();
+			$this->kelasnama->AdvancedSearch->unsetSession();
+			$this->nomorinduk->AdvancedSearch->unsetSession();
+			$this->siswanama->AdvancedSearch->unsetSession();
+			$this->iurannama->AdvancedSearch->unsetSession();
+			$this->periodebayar->AdvancedSearch->unsetSession();
 			$restoreDefault = TRUE;
 		} else {
 			$restoreSession = !$this->SearchCommand;
 
-			// Field TahunAjaran
-			$this->getDropDownValue($this->TahunAjaran);
+			// Field tahunajaran
+			$this->getDropDownValue($this->tahunajaran);
 
-			// Field SekolahNama
-			$this->getDropDownValue($this->SekolahNama);
+			// Field sekolahnama
+			$this->getDropDownValue($this->sekolahnama);
 
-			// Field KelasNama
-			$this->getDropDownValue($this->KelasNama);
+			// Field kelasnama
+			$this->getDropDownValue($this->kelasnama);
 
-			// Field NomorInduk
-			$this->getDropDownValue($this->NomorInduk);
+			// Field nomorinduk
+			$this->getDropDownValue($this->nomorinduk);
 
-			// Field SiswaNama
-			$this->getDropDownValue($this->SiswaNama);
+			// Field siswanama
+			$this->getDropDownValue($this->siswanama);
 
-			// Field IuranNama
-			$this->getDropDownValue($this->IuranNama);
+			// Field iurannama
+			$this->getDropDownValue($this->iurannama);
 
-			// Field Periode
-			$this->getDropDownValue($this->Periode);
+			// Field periodebayar
+			$this->getDropDownValue($this->periodebayar);
 			if (!$this->validateForm()) {
 				$this->setFailureMessage($FormError);
 				return $filter;
@@ -2173,32 +1920,32 @@ class r102_lap_tunggak_summary extends r102_lap_tunggak
 		// Restore session
 		if ($restoreSession) {
 			$restoreDefault = TRUE;
-			if ($this->TahunAjaran->AdvancedSearch->issetSession()) { // Field TahunAjaran
-				$this->TahunAjaran->AdvancedSearch->load();
+			if ($this->tahunajaran->AdvancedSearch->issetSession()) { // Field tahunajaran
+				$this->tahunajaran->AdvancedSearch->load();
 				$restoreDefault = FALSE;
 			}
-			if ($this->SekolahNama->AdvancedSearch->issetSession()) { // Field SekolahNama
-				$this->SekolahNama->AdvancedSearch->load();
+			if ($this->sekolahnama->AdvancedSearch->issetSession()) { // Field sekolahnama
+				$this->sekolahnama->AdvancedSearch->load();
 				$restoreDefault = FALSE;
 			}
-			if ($this->KelasNama->AdvancedSearch->issetSession()) { // Field KelasNama
-				$this->KelasNama->AdvancedSearch->load();
+			if ($this->kelasnama->AdvancedSearch->issetSession()) { // Field kelasnama
+				$this->kelasnama->AdvancedSearch->load();
 				$restoreDefault = FALSE;
 			}
-			if ($this->NomorInduk->AdvancedSearch->issetSession()) { // Field NomorInduk
-				$this->NomorInduk->AdvancedSearch->load();
+			if ($this->nomorinduk->AdvancedSearch->issetSession()) { // Field nomorinduk
+				$this->nomorinduk->AdvancedSearch->load();
 				$restoreDefault = FALSE;
 			}
-			if ($this->SiswaNama->AdvancedSearch->issetSession()) { // Field SiswaNama
-				$this->SiswaNama->AdvancedSearch->load();
+			if ($this->siswanama->AdvancedSearch->issetSession()) { // Field siswanama
+				$this->siswanama->AdvancedSearch->load();
 				$restoreDefault = FALSE;
 			}
-			if ($this->IuranNama->AdvancedSearch->issetSession()) { // Field IuranNama
-				$this->IuranNama->AdvancedSearch->load();
+			if ($this->iurannama->AdvancedSearch->issetSession()) { // Field iurannama
+				$this->iurannama->AdvancedSearch->load();
 				$restoreDefault = FALSE;
 			}
-			if ($this->Periode->AdvancedSearch->issetSession()) { // Field Periode
-				$this->Periode->AdvancedSearch->load();
+			if ($this->periodebayar->AdvancedSearch->issetSession()) { // Field periodebayar
+				$this->periodebayar->AdvancedSearch->load();
 				$restoreDefault = FALSE;
 			}
 		}
@@ -2211,41 +1958,41 @@ class r102_lap_tunggak_summary extends r102_lap_tunggak
 		$this->Page_FilterValidated();
 
 		// Build SQL and save to session
-		$this->buildDropDownFilter($this->TahunAjaran, $filter, $this->TahunAjaran->AdvancedSearch->SearchOperator, FALSE, TRUE); // Field TahunAjaran
-		$this->TahunAjaran->AdvancedSearch->save();
-		$this->buildDropDownFilter($this->SekolahNama, $filter, $this->SekolahNama->AdvancedSearch->SearchOperator, FALSE, TRUE); // Field SekolahNama
-		$this->SekolahNama->AdvancedSearch->save();
-		$this->buildDropDownFilter($this->KelasNama, $filter, $this->KelasNama->AdvancedSearch->SearchOperator, FALSE, TRUE); // Field KelasNama
-		$this->KelasNama->AdvancedSearch->save();
-		$this->buildDropDownFilter($this->NomorInduk, $filter, $this->NomorInduk->AdvancedSearch->SearchOperator, FALSE, TRUE); // Field NomorInduk
-		$this->NomorInduk->AdvancedSearch->save();
-		$this->buildDropDownFilter($this->SiswaNama, $filter, $this->SiswaNama->AdvancedSearch->SearchOperator, FALSE, TRUE); // Field SiswaNama
-		$this->SiswaNama->AdvancedSearch->save();
-		$this->buildDropDownFilter($this->IuranNama, $filter, $this->IuranNama->AdvancedSearch->SearchOperator, FALSE, TRUE); // Field IuranNama
-		$this->IuranNama->AdvancedSearch->save();
-		$this->buildDropDownFilter($this->Periode, $filter, $this->Periode->AdvancedSearch->SearchOperator, FALSE, TRUE); // Field Periode
-		$this->Periode->AdvancedSearch->save();
+		$this->buildDropDownFilter($this->tahunajaran, $filter, $this->tahunajaran->AdvancedSearch->SearchOperator, FALSE, TRUE); // Field tahunajaran
+		$this->tahunajaran->AdvancedSearch->save();
+		$this->buildDropDownFilter($this->sekolahnama, $filter, $this->sekolahnama->AdvancedSearch->SearchOperator, FALSE, TRUE); // Field sekolahnama
+		$this->sekolahnama->AdvancedSearch->save();
+		$this->buildDropDownFilter($this->kelasnama, $filter, $this->kelasnama->AdvancedSearch->SearchOperator, FALSE, TRUE); // Field kelasnama
+		$this->kelasnama->AdvancedSearch->save();
+		$this->buildDropDownFilter($this->nomorinduk, $filter, $this->nomorinduk->AdvancedSearch->SearchOperator, FALSE, TRUE); // Field nomorinduk
+		$this->nomorinduk->AdvancedSearch->save();
+		$this->buildDropDownFilter($this->siswanama, $filter, $this->siswanama->AdvancedSearch->SearchOperator, FALSE, TRUE); // Field siswanama
+		$this->siswanama->AdvancedSearch->save();
+		$this->buildDropDownFilter($this->iurannama, $filter, $this->iurannama->AdvancedSearch->SearchOperator, FALSE, TRUE); // Field iurannama
+		$this->iurannama->AdvancedSearch->save();
+		$this->buildDropDownFilter($this->periodebayar, $filter, $this->periodebayar->AdvancedSearch->SearchOperator, FALSE, TRUE); // Field periodebayar
+		$this->periodebayar->AdvancedSearch->save();
 
-		// Field TahunAjaran
-		LoadDropDownList($this->TahunAjaran->EditValue, $this->TahunAjaran->AdvancedSearch->SearchValue);
+		// Field tahunajaran
+		LoadDropDownList($this->tahunajaran->EditValue, $this->tahunajaran->AdvancedSearch->SearchValue);
 
-		// Field SekolahNama
-		LoadDropDownList($this->SekolahNama->EditValue, $this->SekolahNama->AdvancedSearch->SearchValue);
+		// Field sekolahnama
+		LoadDropDownList($this->sekolahnama->EditValue, $this->sekolahnama->AdvancedSearch->SearchValue);
 
-		// Field KelasNama
-		LoadDropDownList($this->KelasNama->EditValue, $this->KelasNama->AdvancedSearch->SearchValue);
+		// Field kelasnama
+		LoadDropDownList($this->kelasnama->EditValue, $this->kelasnama->AdvancedSearch->SearchValue);
 
-		// Field NomorInduk
-		LoadDropDownList($this->NomorInduk->EditValue, $this->NomorInduk->AdvancedSearch->SearchValue);
+		// Field nomorinduk
+		LoadDropDownList($this->nomorinduk->EditValue, $this->nomorinduk->AdvancedSearch->SearchValue);
 
-		// Field SiswaNama
-		LoadDropDownList($this->SiswaNama->EditValue, $this->SiswaNama->AdvancedSearch->SearchValue);
+		// Field siswanama
+		LoadDropDownList($this->siswanama->EditValue, $this->siswanama->AdvancedSearch->SearchValue);
 
-		// Field IuranNama
-		LoadDropDownList($this->IuranNama->EditValue, $this->IuranNama->AdvancedSearch->SearchValue);
+		// Field iurannama
+		LoadDropDownList($this->iurannama->EditValue, $this->iurannama->AdvancedSearch->SearchValue);
 
-		// Field Periode
-		LoadDropDownList($this->Periode->EditValue, $this->Periode->AdvancedSearch->SearchValue);
+		// Field periodebayar
+		LoadDropDownList($this->periodebayar->EditValue, $this->periodebayar->AdvancedSearch->SearchValue);
 		return $filter;
 	}
 
@@ -2422,27 +2169,27 @@ class r102_lap_tunggak_summary extends r102_lap_tunggak
 		/**
 		* Set up default values for extended filters
 		*/
-		// Field TahunAjaran
+		// Field tahunajaran
 
-		$this->TahunAjaran->AdvancedSearch->loadDefault();
+		$this->tahunajaran->AdvancedSearch->loadDefault();
 
-		// Field SekolahNama
-		$this->SekolahNama->AdvancedSearch->loadDefault();
+		// Field sekolahnama
+		$this->sekolahnama->AdvancedSearch->loadDefault();
 
-		// Field KelasNama
-		$this->KelasNama->AdvancedSearch->loadDefault();
+		// Field kelasnama
+		$this->kelasnama->AdvancedSearch->loadDefault();
 
-		// Field NomorInduk
-		$this->NomorInduk->AdvancedSearch->loadDefault();
+		// Field nomorinduk
+		$this->nomorinduk->AdvancedSearch->loadDefault();
 
-		// Field SiswaNama
-		$this->SiswaNama->AdvancedSearch->loadDefault();
+		// Field siswanama
+		$this->siswanama->AdvancedSearch->loadDefault();
 
-		// Field IuranNama
-		$this->IuranNama->AdvancedSearch->loadDefault();
+		// Field iurannama
+		$this->iurannama->AdvancedSearch->loadDefault();
 
-		// Field Periode
-		$this->Periode->AdvancedSearch->loadDefault();
+		// Field periodebayar
+		$this->periodebayar->AdvancedSearch->loadDefault();
 	}
 
 	// Show list of filters
@@ -2455,68 +2202,68 @@ class r102_lap_tunggak_summary extends r102_lap_tunggak
 		$captionClass = $this->isExport("email") ? "ew-filter-caption-email" : "ew-filter-caption";
 		$captionSuffix = $this->isExport("email") ? ": " : "";
 
-		// Field TahunAjaran
+		// Field tahunajaran
 		$extWrk = "";
-		$this->buildDropDownFilter($this->TahunAjaran, $extWrk, $this->TahunAjaran->AdvancedSearch->SearchOperator);
+		$this->buildDropDownFilter($this->tahunajaran, $extWrk, $this->tahunajaran->AdvancedSearch->SearchOperator);
 		$filter = "";
 		if ($extWrk != "")
 			$filter .= "<span class=\"ew-filter-value\">$extWrk</span>";
 		if ($filter != "")
-			$filterList .= "<div><span class=\"" . $captionClass . "\">" . $this->TahunAjaran->caption() . "</span>" . $captionSuffix . $filter . "</div>";
+			$filterList .= "<div><span class=\"" . $captionClass . "\">" . $this->tahunajaran->caption() . "</span>" . $captionSuffix . $filter . "</div>";
 
-		// Field SekolahNama
+		// Field sekolahnama
 		$extWrk = "";
-		$this->buildDropDownFilter($this->SekolahNama, $extWrk, $this->SekolahNama->AdvancedSearch->SearchOperator);
+		$this->buildDropDownFilter($this->sekolahnama, $extWrk, $this->sekolahnama->AdvancedSearch->SearchOperator);
 		$filter = "";
 		if ($extWrk != "")
 			$filter .= "<span class=\"ew-filter-value\">$extWrk</span>";
 		if ($filter != "")
-			$filterList .= "<div><span class=\"" . $captionClass . "\">" . $this->SekolahNama->caption() . "</span>" . $captionSuffix . $filter . "</div>";
+			$filterList .= "<div><span class=\"" . $captionClass . "\">" . $this->sekolahnama->caption() . "</span>" . $captionSuffix . $filter . "</div>";
 
-		// Field KelasNama
+		// Field kelasnama
 		$extWrk = "";
-		$this->buildDropDownFilter($this->KelasNama, $extWrk, $this->KelasNama->AdvancedSearch->SearchOperator);
+		$this->buildDropDownFilter($this->kelasnama, $extWrk, $this->kelasnama->AdvancedSearch->SearchOperator);
 		$filter = "";
 		if ($extWrk != "")
 			$filter .= "<span class=\"ew-filter-value\">$extWrk</span>";
 		if ($filter != "")
-			$filterList .= "<div><span class=\"" . $captionClass . "\">" . $this->KelasNama->caption() . "</span>" . $captionSuffix . $filter . "</div>";
+			$filterList .= "<div><span class=\"" . $captionClass . "\">" . $this->kelasnama->caption() . "</span>" . $captionSuffix . $filter . "</div>";
 
-		// Field NomorInduk
+		// Field nomorinduk
 		$extWrk = "";
-		$this->buildDropDownFilter($this->NomorInduk, $extWrk, $this->NomorInduk->AdvancedSearch->SearchOperator);
+		$this->buildDropDownFilter($this->nomorinduk, $extWrk, $this->nomorinduk->AdvancedSearch->SearchOperator);
 		$filter = "";
 		if ($extWrk != "")
 			$filter .= "<span class=\"ew-filter-value\">$extWrk</span>";
 		if ($filter != "")
-			$filterList .= "<div><span class=\"" . $captionClass . "\">" . $this->NomorInduk->caption() . "</span>" . $captionSuffix . $filter . "</div>";
+			$filterList .= "<div><span class=\"" . $captionClass . "\">" . $this->nomorinduk->caption() . "</span>" . $captionSuffix . $filter . "</div>";
 
-		// Field SiswaNama
+		// Field siswanama
 		$extWrk = "";
-		$this->buildDropDownFilter($this->SiswaNama, $extWrk, $this->SiswaNama->AdvancedSearch->SearchOperator);
+		$this->buildDropDownFilter($this->siswanama, $extWrk, $this->siswanama->AdvancedSearch->SearchOperator);
 		$filter = "";
 		if ($extWrk != "")
 			$filter .= "<span class=\"ew-filter-value\">$extWrk</span>";
 		if ($filter != "")
-			$filterList .= "<div><span class=\"" . $captionClass . "\">" . $this->SiswaNama->caption() . "</span>" . $captionSuffix . $filter . "</div>";
+			$filterList .= "<div><span class=\"" . $captionClass . "\">" . $this->siswanama->caption() . "</span>" . $captionSuffix . $filter . "</div>";
 
-		// Field IuranNama
+		// Field iurannama
 		$extWrk = "";
-		$this->buildDropDownFilter($this->IuranNama, $extWrk, $this->IuranNama->AdvancedSearch->SearchOperator);
+		$this->buildDropDownFilter($this->iurannama, $extWrk, $this->iurannama->AdvancedSearch->SearchOperator);
 		$filter = "";
 		if ($extWrk != "")
 			$filter .= "<span class=\"ew-filter-value\">$extWrk</span>";
 		if ($filter != "")
-			$filterList .= "<div><span class=\"" . $captionClass . "\">" . $this->IuranNama->caption() . "</span>" . $captionSuffix . $filter . "</div>";
+			$filterList .= "<div><span class=\"" . $captionClass . "\">" . $this->iurannama->caption() . "</span>" . $captionSuffix . $filter . "</div>";
 
-		// Field Periode
+		// Field periodebayar
 		$extWrk = "";
-		$this->buildDropDownFilter($this->Periode, $extWrk, $this->Periode->AdvancedSearch->SearchOperator);
+		$this->buildDropDownFilter($this->periodebayar, $extWrk, $this->periodebayar->AdvancedSearch->SearchOperator);
 		$filter = "";
 		if ($extWrk != "")
 			$filter .= "<span class=\"ew-filter-value\">$extWrk</span>";
 		if ($filter != "")
-			$filterList .= "<div><span class=\"" . $captionClass . "\">" . $this->Periode->caption() . "</span>" . $captionSuffix . $filter . "</div>";
+			$filterList .= "<div><span class=\"" . $captionClass . "\">" . $this->periodebayar->caption() . "</span>" . $captionSuffix . $filter . "</div>";
 
 		// Show Filters
 		if ($filterList != "") {
@@ -2534,85 +2281,85 @@ class r102_lap_tunggak_summary extends r102_lap_tunggak
 		// Initialize
 		$filterList = "";
 
-		// Field TahunAjaran
+		// Field tahunajaran
 		$wrk = "";
-		$wrk = ($this->TahunAjaran->AdvancedSearch->SearchValue != INIT_VALUE) ? $this->TahunAjaran->AdvancedSearch->SearchValue : "";
+		$wrk = ($this->tahunajaran->AdvancedSearch->SearchValue != INIT_VALUE) ? $this->tahunajaran->AdvancedSearch->SearchValue : "";
 		if (is_array($wrk))
 			$wrk = implode("||", $wrk);
 		if ($wrk != "")
-			$wrk = "\"x_TahunAjaran\":\"" . JsEncode($wrk) . "\"";
+			$wrk = "\"x_tahunajaran\":\"" . JsEncode($wrk) . "\"";
 		if ($wrk != "") {
 			if ($filterList != "") $filterList .= ",";
 			$filterList .= $wrk;
 		}
 
-		// Field SekolahNama
+		// Field sekolahnama
 		$wrk = "";
-		$wrk = ($this->SekolahNama->AdvancedSearch->SearchValue != INIT_VALUE) ? $this->SekolahNama->AdvancedSearch->SearchValue : "";
+		$wrk = ($this->sekolahnama->AdvancedSearch->SearchValue != INIT_VALUE) ? $this->sekolahnama->AdvancedSearch->SearchValue : "";
 		if (is_array($wrk))
 			$wrk = implode("||", $wrk);
 		if ($wrk != "")
-			$wrk = "\"x_SekolahNama\":\"" . JsEncode($wrk) . "\"";
+			$wrk = "\"x_sekolahnama\":\"" . JsEncode($wrk) . "\"";
 		if ($wrk != "") {
 			if ($filterList != "") $filterList .= ",";
 			$filterList .= $wrk;
 		}
 
-		// Field KelasNama
+		// Field kelasnama
 		$wrk = "";
-		$wrk = ($this->KelasNama->AdvancedSearch->SearchValue != INIT_VALUE) ? $this->KelasNama->AdvancedSearch->SearchValue : "";
+		$wrk = ($this->kelasnama->AdvancedSearch->SearchValue != INIT_VALUE) ? $this->kelasnama->AdvancedSearch->SearchValue : "";
 		if (is_array($wrk))
 			$wrk = implode("||", $wrk);
 		if ($wrk != "")
-			$wrk = "\"x_KelasNama\":\"" . JsEncode($wrk) . "\"";
+			$wrk = "\"x_kelasnama\":\"" . JsEncode($wrk) . "\"";
 		if ($wrk != "") {
 			if ($filterList != "") $filterList .= ",";
 			$filterList .= $wrk;
 		}
 
-		// Field NomorInduk
+		// Field nomorinduk
 		$wrk = "";
-		$wrk = ($this->NomorInduk->AdvancedSearch->SearchValue != INIT_VALUE) ? $this->NomorInduk->AdvancedSearch->SearchValue : "";
+		$wrk = ($this->nomorinduk->AdvancedSearch->SearchValue != INIT_VALUE) ? $this->nomorinduk->AdvancedSearch->SearchValue : "";
 		if (is_array($wrk))
 			$wrk = implode("||", $wrk);
 		if ($wrk != "")
-			$wrk = "\"x_NomorInduk\":\"" . JsEncode($wrk) . "\"";
+			$wrk = "\"x_nomorinduk\":\"" . JsEncode($wrk) . "\"";
 		if ($wrk != "") {
 			if ($filterList != "") $filterList .= ",";
 			$filterList .= $wrk;
 		}
 
-		// Field SiswaNama
+		// Field siswanama
 		$wrk = "";
-		$wrk = ($this->SiswaNama->AdvancedSearch->SearchValue != INIT_VALUE) ? $this->SiswaNama->AdvancedSearch->SearchValue : "";
+		$wrk = ($this->siswanama->AdvancedSearch->SearchValue != INIT_VALUE) ? $this->siswanama->AdvancedSearch->SearchValue : "";
 		if (is_array($wrk))
 			$wrk = implode("||", $wrk);
 		if ($wrk != "")
-			$wrk = "\"x_SiswaNama\":\"" . JsEncode($wrk) . "\"";
+			$wrk = "\"x_siswanama\":\"" . JsEncode($wrk) . "\"";
 		if ($wrk != "") {
 			if ($filterList != "") $filterList .= ",";
 			$filterList .= $wrk;
 		}
 
-		// Field IuranNama
+		// Field iurannama
 		$wrk = "";
-		$wrk = ($this->IuranNama->AdvancedSearch->SearchValue != INIT_VALUE) ? $this->IuranNama->AdvancedSearch->SearchValue : "";
+		$wrk = ($this->iurannama->AdvancedSearch->SearchValue != INIT_VALUE) ? $this->iurannama->AdvancedSearch->SearchValue : "";
 		if (is_array($wrk))
 			$wrk = implode("||", $wrk);
 		if ($wrk != "")
-			$wrk = "\"x_IuranNama\":\"" . JsEncode($wrk) . "\"";
+			$wrk = "\"x_iurannama\":\"" . JsEncode($wrk) . "\"";
 		if ($wrk != "") {
 			if ($filterList != "") $filterList .= ",";
 			$filterList .= $wrk;
 		}
 
-		// Field Periode
+		// Field periodebayar
 		$wrk = "";
-		$wrk = ($this->Periode->AdvancedSearch->SearchValue != INIT_VALUE) ? $this->Periode->AdvancedSearch->SearchValue : "";
+		$wrk = ($this->periodebayar->AdvancedSearch->SearchValue != INIT_VALUE) ? $this->periodebayar->AdvancedSearch->SearchValue : "";
 		if (is_array($wrk))
 			$wrk = implode("||", $wrk);
 		if ($wrk != "")
-			$wrk = "\"x_Periode\":\"" . JsEncode($wrk) . "\"";
+			$wrk = "\"x_periodebayar\":\"" . JsEncode($wrk) . "\"";
 		if ($wrk != "") {
 			if ($filterList != "") $filterList .= ",";
 			$filterList .= $wrk;
@@ -2642,40 +2389,40 @@ class r102_lap_tunggak_summary extends r102_lap_tunggak
 		if (!is_array($filter))
 			return FALSE;
 
-		// Field TahunAjaran
-		if (!$this->TahunAjaran->AdvancedSearch->getFromArray($filter))
-			$this->TahunAjaran->AdvancedSearch->loadDefault(); // Clear filter
-		$this->TahunAjaran->AdvancedSearch->save();
+		// Field tahunajaran
+		if (!$this->tahunajaran->AdvancedSearch->getFromArray($filter))
+			$this->tahunajaran->AdvancedSearch->loadDefault(); // Clear filter
+		$this->tahunajaran->AdvancedSearch->save();
 
-		// Field SekolahNama
-		if (!$this->SekolahNama->AdvancedSearch->getFromArray($filter))
-			$this->SekolahNama->AdvancedSearch->loadDefault(); // Clear filter
-		$this->SekolahNama->AdvancedSearch->save();
+		// Field sekolahnama
+		if (!$this->sekolahnama->AdvancedSearch->getFromArray($filter))
+			$this->sekolahnama->AdvancedSearch->loadDefault(); // Clear filter
+		$this->sekolahnama->AdvancedSearch->save();
 
-		// Field KelasNama
-		if (!$this->KelasNama->AdvancedSearch->getFromArray($filter))
-			$this->KelasNama->AdvancedSearch->loadDefault(); // Clear filter
-		$this->KelasNama->AdvancedSearch->save();
+		// Field kelasnama
+		if (!$this->kelasnama->AdvancedSearch->getFromArray($filter))
+			$this->kelasnama->AdvancedSearch->loadDefault(); // Clear filter
+		$this->kelasnama->AdvancedSearch->save();
 
-		// Field NomorInduk
-		if (!$this->NomorInduk->AdvancedSearch->getFromArray($filter))
-			$this->NomorInduk->AdvancedSearch->loadDefault(); // Clear filter
-		$this->NomorInduk->AdvancedSearch->save();
+		// Field nomorinduk
+		if (!$this->nomorinduk->AdvancedSearch->getFromArray($filter))
+			$this->nomorinduk->AdvancedSearch->loadDefault(); // Clear filter
+		$this->nomorinduk->AdvancedSearch->save();
 
-		// Field SiswaNama
-		if (!$this->SiswaNama->AdvancedSearch->getFromArray($filter))
-			$this->SiswaNama->AdvancedSearch->loadDefault(); // Clear filter
-		$this->SiswaNama->AdvancedSearch->save();
+		// Field siswanama
+		if (!$this->siswanama->AdvancedSearch->getFromArray($filter))
+			$this->siswanama->AdvancedSearch->loadDefault(); // Clear filter
+		$this->siswanama->AdvancedSearch->save();
 
-		// Field IuranNama
-		if (!$this->IuranNama->AdvancedSearch->getFromArray($filter))
-			$this->IuranNama->AdvancedSearch->loadDefault(); // Clear filter
-		$this->IuranNama->AdvancedSearch->save();
+		// Field iurannama
+		if (!$this->iurannama->AdvancedSearch->getFromArray($filter))
+			$this->iurannama->AdvancedSearch->loadDefault(); // Clear filter
+		$this->iurannama->AdvancedSearch->save();
 
-		// Field Periode
-		if (!$this->Periode->AdvancedSearch->getFromArray($filter))
-			$this->Periode->AdvancedSearch->loadDefault(); // Clear filter
-		$this->Periode->AdvancedSearch->save();
+		// Field periodebayar
+		if (!$this->periodebayar->AdvancedSearch->getFromArray($filter))
+			$this->periodebayar->AdvancedSearch->loadDefault(); // Clear filter
+		$this->periodebayar->AdvancedSearch->save();
 		return TRUE;
 	}
 
@@ -2683,16 +2430,6 @@ class r102_lap_tunggak_summary extends r102_lap_tunggak
 	function Page_Load() {
 
 		//echo "Page Load";
-		// sembunyikan kolom saat menampilkan hasil search
-
-		if (isset($_GET['cmd']) and $_GET['cmd'] == 'search') {
-			$this->TahunAjaran->Visible = false;
-			$this->SekolahNama->Visible = false;
-			$this->KelasNama->Visible = false;
-			$this->NomorInduk->Visible = false;
-			$this->SiswaNama->Visible = false;
-			$this->IuranNama->Visible = false;
-		}
 	}
 
 	// Page Unload event
@@ -2773,11 +2510,6 @@ class r102_lap_tunggak_summary extends r102_lap_tunggak
 	function Page_Selecting(&$filter) {
 
 		// Enter your code here
-		// hanya menampilkan data tunggakan hingga bulan ini
-
-		if (isset($_GET['cmd']) and $_GET['cmd'] == 'search') {
-			AddFilter($filter, 'Periode < PeriodeNow');
-		}
 	}
 
 	// Page Filter Validated event
