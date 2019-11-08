@@ -931,6 +931,18 @@
     <menu id="29">
       <phrase id="menutext" value="General" />
     </menu>
+    <menu id="31">
+      <phrase id="menutext" value="Backup" />
+    </menu>
+    <menu id="32">
+      <phrase id="menutext" value="Import" />
+    </menu>
+    <menu id="33">
+      <phrase id="menutext" value="Import Aksi" />
+    </menu>
+    <menu id="34">
+      <phrase id="menutext" value="Proses Import" />
+    </menu>
     <menu id="9">
       <phrase id="menutext" value="t 301 employees" />
     </menu>
@@ -1866,6 +1878,18 @@
     </table>
     <table id="c301_home">
       <phrase id="tblcaption" value="Home" />
+    </table>
+    <table id="c302_backup">
+      <phrase id="tblcaption" value="Backup" />
+    </table>
+    <table id="c303_import">
+      <phrase id="tblcaption" value="Import" />
+    </table>
+    <table id="c304_import_aksi">
+      <phrase id="tblcaption" value="Import Aksi" />
+    </table>
+    <table id="c305_import_aksi2">
+      <phrase id="tblcaption" value="Proses Import" />
     </table>
   </project>
 </ew-language>
