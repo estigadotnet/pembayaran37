@@ -323,6 +323,10 @@ class index
 			$this->terminate("c304_import_aksi.php");
 		if ($Security->allowList(CurrentProjectID() . 'c305_import_aksi2.php'))
 			$this->terminate("c305_import_aksi2.php");
+		if ($Security->allowList(CurrentProjectID() . 'r101_lap_bayar'))
+			$this->terminate("r101_lap_bayarsmry.php");
+		if ($Security->allowList(CurrentProjectID() . 'r102_lap_tunggak'))
+			$this->terminate("r102_lap_tunggaksmry.php");
 		if ($Security->isLoggedIn()) {
 			$this->setFailureMessage(DeniedMessage() . "<br><br><a href=\"logout.php\">" . $Language->phrase("BackToLogin") . "</a>");
 		} else {

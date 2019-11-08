@@ -1046,6 +1046,28 @@ class t004_siswa_add extends t004_siswa
 	protected function addRow($rsold = NULL)
 	{
 		global $Language, $Security;
+		if ($this->NomorInduk->CurrentValue != "") { // Check field with unique index
+			$filter = "(NomorInduk = '" . AdjustSql($this->NomorInduk->CurrentValue, $this->Dbid) . "')";
+			$rsChk = $this->loadRs($filter);
+			if ($rsChk && !$rsChk->EOF) {
+				$idxErrMsg = str_replace("%f", $this->NomorInduk->caption(), $Language->phrase("DupIndex"));
+				$idxErrMsg = str_replace("%v", $this->NomorInduk->CurrentValue, $idxErrMsg);
+				$this->setFailureMessage($idxErrMsg);
+				$rsChk->close();
+				return FALSE;
+			}
+		}
+		if ($this->Nama->CurrentValue != "") { // Check field with unique index
+			$filter = "(Nama = '" . AdjustSql($this->Nama->CurrentValue, $this->Dbid) . "')";
+			$rsChk = $this->loadRs($filter);
+			if ($rsChk && !$rsChk->EOF) {
+				$idxErrMsg = str_replace("%f", $this->Nama->caption(), $Language->phrase("DupIndex"));
+				$idxErrMsg = str_replace("%v", $this->Nama->CurrentValue, $idxErrMsg);
+				$this->setFailureMessage($idxErrMsg);
+				$rsChk->close();
+				return FALSE;
+			}
+		}
 		$conn = $this->getConnection();
 
 		// Load db values from rsold

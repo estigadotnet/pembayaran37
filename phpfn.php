@@ -11781,6 +11781,9 @@ class Language
 		// hilangkan kata contains
 
 		$this->setPhrase("LIKE", "");
+
+		// hilangkan kata between
+		$this->setPhrase("BETWEEN", "antara");
 	}
 }
 
