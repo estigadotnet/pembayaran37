@@ -329,6 +329,8 @@ class index
 			$this->terminate("r102_lap_tunggaksmry.php");
 		if ($Security->allowList(CurrentProjectID() . 'r103_lap_um'))
 			$this->terminate("r103_lap_umsmry.php");
+		if ($Security->allowList(CurrentProjectID() . 'r104_lap_pum'))
+			$this->terminate("r104_lap_pumsmry.php");
 		if ($Security->isLoggedIn()) {
 			$this->setFailureMessage(DeniedMessage() . "<br><br><a href=\"logout.php\">" . $Language->phrase("BackToLogin") . "</a>");
 		} else {

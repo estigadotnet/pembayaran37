@@ -860,8 +860,10 @@ class v102_daf_kelas_siswa_list extends v102_daf_kelas_siswa
 		}
 
 		// Set up lookup cache
-		// Search filters
+		$this->setupLookupOptions($this->tsk);
+		$this->setupLookupOptions($this->siswa);
 
+		// Search filters
 		$srchAdvanced = ""; // Advanced search filter
 		$srchBasic = ""; // Basic search filter
 		$filter = "";
@@ -1958,11 +1960,15 @@ class v102_daf_kelas_siswa_list extends v102_daf_kelas_siswa
 			$this->siswa_id->ViewCustomAttributes = "";
 
 			// tsk
-			$this->tsk->ViewValue = $this->tsk->CurrentValue;
+			$arwrk = [];
+			$arwrk[1] = $this->tsk->CurrentValue;
+			$this->tsk->ViewValue = $this->tsk->displayValue($arwrk);
 			$this->tsk->ViewCustomAttributes = "";
 
 			// siswa
-			$this->siswa->ViewValue = $this->siswa->CurrentValue;
+			$arwrk = [];
+			$arwrk[1] = $this->siswa->CurrentValue;
+			$this->siswa->ViewValue = $this->siswa->displayValue($arwrk);
 			$this->siswa->ViewCustomAttributes = "";
 
 			// tsk
@@ -1977,20 +1983,68 @@ class v102_daf_kelas_siswa_list extends v102_daf_kelas_siswa
 		} elseif ($this->RowType == ROWTYPE_SEARCH) { // Search row
 
 			// tsk
-			$this->tsk->EditAttrs["class"] = "form-control";
 			$this->tsk->EditCustomAttributes = "";
-			if (!$this->tsk->Raw)
-				$this->tsk->AdvancedSearch->SearchValue = HtmlDecode($this->tsk->AdvancedSearch->SearchValue);
-			$this->tsk->EditValue = HtmlEncode($this->tsk->AdvancedSearch->SearchValue);
-			$this->tsk->PlaceHolder = RemoveHtml($this->tsk->caption());
+			$curVal = trim(strval($this->tsk->AdvancedSearch->SearchValue));
+			if ($curVal != "")
+				$this->tsk->AdvancedSearch->ViewValue = $this->tsk->lookupCacheOption($curVal);
+			else
+				$this->tsk->AdvancedSearch->ViewValue = $this->tsk->Lookup !== NULL && is_array($this->tsk->Lookup->Options) ? $curVal : NULL;
+			if ($this->tsk->AdvancedSearch->ViewValue !== NULL) { // Load from cache
+				$this->tsk->EditValue = array_values($this->tsk->Lookup->Options);
+				if ($this->tsk->AdvancedSearch->ViewValue == "")
+					$this->tsk->AdvancedSearch->ViewValue = $Language->phrase("PleaseSelect");
+			} else { // Lookup from database
+				if ($curVal == "") {
+					$filterWrk = "0=1";
+				} else {
+					$filterWrk = "`tsk`" . SearchString("=", $this->tsk->AdvancedSearch->SearchValue, DATATYPE_STRING, "");
+				}
+				$sqlWrk = $this->tsk->Lookup->getSql(TRUE, $filterWrk, '', $this);
+				$rswrk = Conn()->execute($sqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$arwrk = [];
+					$arwrk[1] = HtmlEncode($rswrk->fields('df'));
+					$this->tsk->AdvancedSearch->ViewValue = $this->tsk->displayValue($arwrk);
+				} else {
+					$this->tsk->AdvancedSearch->ViewValue = $Language->phrase("PleaseSelect");
+				}
+				$arwrk = $rswrk ? $rswrk->getRows() : [];
+				if ($rswrk)
+					$rswrk->close();
+				$this->tsk->EditValue = $arwrk;
+			}
 
 			// siswa
-			$this->siswa->EditAttrs["class"] = "form-control";
 			$this->siswa->EditCustomAttributes = "";
-			if (!$this->siswa->Raw)
-				$this->siswa->AdvancedSearch->SearchValue = HtmlDecode($this->siswa->AdvancedSearch->SearchValue);
-			$this->siswa->EditValue = HtmlEncode($this->siswa->AdvancedSearch->SearchValue);
-			$this->siswa->PlaceHolder = RemoveHtml($this->siswa->caption());
+			$curVal = trim(strval($this->siswa->AdvancedSearch->SearchValue));
+			if ($curVal != "")
+				$this->siswa->AdvancedSearch->ViewValue = $this->siswa->lookupCacheOption($curVal);
+			else
+				$this->siswa->AdvancedSearch->ViewValue = $this->siswa->Lookup !== NULL && is_array($this->siswa->Lookup->Options) ? $curVal : NULL;
+			if ($this->siswa->AdvancedSearch->ViewValue !== NULL) { // Load from cache
+				$this->siswa->EditValue = array_values($this->siswa->Lookup->Options);
+				if ($this->siswa->AdvancedSearch->ViewValue == "")
+					$this->siswa->AdvancedSearch->ViewValue = $Language->phrase("PleaseSelect");
+			} else { // Lookup from database
+				if ($curVal == "") {
+					$filterWrk = "0=1";
+				} else {
+					$filterWrk = "`siswa`" . SearchString("=", $this->siswa->AdvancedSearch->SearchValue, DATATYPE_STRING, "");
+				}
+				$sqlWrk = $this->siswa->Lookup->getSql(TRUE, $filterWrk, '', $this);
+				$rswrk = Conn()->execute($sqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$arwrk = [];
+					$arwrk[1] = HtmlEncode($rswrk->fields('df'));
+					$this->siswa->AdvancedSearch->ViewValue = $this->siswa->displayValue($arwrk);
+				} else {
+					$this->siswa->AdvancedSearch->ViewValue = $Language->phrase("PleaseSelect");
+				}
+				$arwrk = $rswrk ? $rswrk->getRows() : [];
+				if ($rswrk)
+					$rswrk->close();
+				$this->siswa->EditValue = $arwrk;
+			}
 		}
 		if ($this->RowType == ROWTYPE_ADD || $this->RowType == ROWTYPE_EDIT || $this->RowType == ROWTYPE_SEARCH) // Add/Edit/Search row
 			$this->setupFieldTitles();
@@ -2290,6 +2344,12 @@ class v102_daf_kelas_siswa_list extends v102_daf_kelas_siswa
 
 			// Set up lookup SQL and connection
 			switch ($fld->FieldVar) {
+				case "x_tsk":
+					$conn = Conn("");
+					break;
+				case "x_siswa":
+					$conn = Conn("");
+					break;
 				default:
 					$lookupFilter = "";
 					break;
@@ -2310,6 +2370,10 @@ class v102_daf_kelas_siswa_list extends v102_daf_kelas_siswa
 
 					// Format the field values
 					switch ($fld->FieldVar) {
+						case "x_tsk":
+							break;
+						case "x_siswa":
+							break;
 					}
 					$ar[strval($row[0])] = $row;
 					$rs->moveNext();

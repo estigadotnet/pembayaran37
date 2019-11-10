@@ -981,6 +981,10 @@ class t101_daf_kelas_list extends t101_daf_kelas
 			$filter = "(0=1)"; // Filter all records
 		AddFilter($filter, $this->DbDetailFilter);
 		AddFilter($filter, $this->SearchWhere);
+		if ($filter == "") {
+			$filter = "0=101";
+			$this->SearchWhere = $filter;
+		}
 
 		// Set up filter
 		if ($this->Command == "json") {
@@ -2286,7 +2290,7 @@ class t101_daf_kelas_list extends t101_daf_kelas
 
 		// Show all button
 		$item = &$this->SearchOptions->add("showall");
-		$item->Body = "<a class=\"btn btn-default ew-show-all\" title=\"" . $Language->phrase("ShowAll") . "\" data-caption=\"" . $Language->phrase("ShowAll") . "\" href=\"" . $this->pageUrl() . "cmd=reset\">" . $Language->phrase("ShowAllBtn") . "</a>";
+		$item->Body = "<a class=\"btn btn-default ew-show-all\" title=\"" . $Language->phrase("ResetSearch") . "\" data-caption=\"" . $Language->phrase("ResetSearch") . "\" href=\"" . $this->pageUrl() . "cmd=reset\">" . $Language->phrase("ResetSearchBtn") . "</a>";
 		$item->Visible = ($this->SearchWhere != $this->DefaultSearchWhere && $this->SearchWhere != "0=101");
 
 		// Button group for search

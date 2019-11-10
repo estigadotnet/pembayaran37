@@ -74,8 +74,12 @@ loadjs.ready("head", function() {
 	fv102_daf_kelas_siswalistsrch.validateRequired = <?php echo Config("CLIENT_VALIDATE") ? "true" : "false" ?>;
 
 	// Dynamic selection lists
-	// Filters
+	fv102_daf_kelas_siswalistsrch.lists["x_tsk"] = <?php echo $v102_daf_kelas_siswa_list->tsk->Lookup->toClientList($v102_daf_kelas_siswa_list) ?>;
+	fv102_daf_kelas_siswalistsrch.lists["x_tsk"].options = <?php echo JsonEncode($v102_daf_kelas_siswa_list->tsk->lookupOptions()) ?>;
+	fv102_daf_kelas_siswalistsrch.lists["x_siswa"] = <?php echo $v102_daf_kelas_siswa_list->siswa->Lookup->toClientList($v102_daf_kelas_siswa_list) ?>;
+	fv102_daf_kelas_siswalistsrch.lists["x_siswa"].options = <?php echo JsonEncode($v102_daf_kelas_siswa_list->siswa->lookupOptions()) ?>;
 
+	// Filters
 	fv102_daf_kelas_siswalistsrch.filterList = <?php echo $v102_daf_kelas_siswa_list->getFilterList() ?>;
 	loadjs.done("fv102_daf_kelas_siswalistsrch");
 });
@@ -140,7 +144,14 @@ $v102_daf_kelas_siswa_list->renderRow();
 <input type="hidden" name="z_tsk" id="z_tsk" value="LIKE">
 </span>
 		<span id="el_v102_daf_kelas_siswa_tsk" class="ew-search-field">
-<input type="text" data-table="v102_daf_kelas_siswa" data-field="x_tsk" name="x_tsk" id="x_tsk" size="30" maxlength="113" placeholder="<?php echo HtmlEncode($v102_daf_kelas_siswa_list->tsk->getPlaceHolder()) ?>" value="<?php echo $v102_daf_kelas_siswa_list->tsk->EditValue ?>"<?php echo $v102_daf_kelas_siswa_list->tsk->editAttributes() ?>>
+<div class="input-group ew-lookup-list">
+	<div class="form-control ew-lookup-text" tabindex="-1" id="lu_x_tsk"><?php echo EmptyValue(strval($v102_daf_kelas_siswa_list->tsk->AdvancedSearch->ViewValue)) ? $Language->phrase("PleaseSelect") : $v102_daf_kelas_siswa_list->tsk->AdvancedSearch->ViewValue ?></div>
+	<div class="input-group-append">
+		<button type="button" title="<?php echo HtmlEncode(str_replace("%s", RemoveHtml($v102_daf_kelas_siswa_list->tsk->caption()), $Language->phrase("LookupLink", TRUE))) ?>" class="ew-lookup-btn btn btn-default"<?php echo ($v102_daf_kelas_siswa_list->tsk->ReadOnly || $v102_daf_kelas_siswa_list->tsk->Disabled) ? " disabled" : "" ?> onclick="ew.modalLookupShow({lnk:this,el:'x_tsk',m:0,n:10});"><i class="fas fa-search ew-icon"></i></button>
+	</div>
+</div>
+<?php echo $v102_daf_kelas_siswa_list->tsk->Lookup->getParamTag($v102_daf_kelas_siswa_list, "p_x_tsk") ?>
+<input type="hidden" data-table="v102_daf_kelas_siswa" data-field="x_tsk" data-multiple="0" data-lookup="1" data-value-separator="<?php echo $v102_daf_kelas_siswa_list->tsk->displayValueSeparatorAttribute() ?>" name="x_tsk" id="x_tsk" value="<?php echo $v102_daf_kelas_siswa_list->tsk->AdvancedSearch->SearchValue ?>"<?php echo $v102_daf_kelas_siswa_list->tsk->editAttributes() ?>>
 </span>
 	</div>
 	<?php if ($v102_daf_kelas_siswa_list->SearchColumnCount % $v102_daf_kelas_siswa_list->SearchFieldsPerRow == 0) { ?>
@@ -164,7 +175,14 @@ $v102_daf_kelas_siswa_list->renderRow();
 <input type="hidden" name="z_siswa" id="z_siswa" value="LIKE">
 </span>
 		<span id="el_v102_daf_kelas_siswa_siswa" class="ew-search-field">
-<input type="text" data-table="v102_daf_kelas_siswa" data-field="x_siswa" name="x_siswa" id="x_siswa" size="30" maxlength="94" placeholder="<?php echo HtmlEncode($v102_daf_kelas_siswa_list->siswa->getPlaceHolder()) ?>" value="<?php echo $v102_daf_kelas_siswa_list->siswa->EditValue ?>"<?php echo $v102_daf_kelas_siswa_list->siswa->editAttributes() ?>>
+<div class="input-group ew-lookup-list">
+	<div class="form-control ew-lookup-text" tabindex="-1" id="lu_x_siswa"><?php echo EmptyValue(strval($v102_daf_kelas_siswa_list->siswa->AdvancedSearch->ViewValue)) ? $Language->phrase("PleaseSelect") : $v102_daf_kelas_siswa_list->siswa->AdvancedSearch->ViewValue ?></div>
+	<div class="input-group-append">
+		<button type="button" title="<?php echo HtmlEncode(str_replace("%s", RemoveHtml($v102_daf_kelas_siswa_list->siswa->caption()), $Language->phrase("LookupLink", TRUE))) ?>" class="ew-lookup-btn btn btn-default"<?php echo ($v102_daf_kelas_siswa_list->siswa->ReadOnly || $v102_daf_kelas_siswa_list->siswa->Disabled) ? " disabled" : "" ?> onclick="ew.modalLookupShow({lnk:this,el:'x_siswa',m:0,n:10});"><i class="fas fa-search ew-icon"></i></button>
+	</div>
+</div>
+<?php echo $v102_daf_kelas_siswa_list->siswa->Lookup->getParamTag($v102_daf_kelas_siswa_list, "p_x_siswa") ?>
+<input type="hidden" data-table="v102_daf_kelas_siswa" data-field="x_siswa" data-multiple="0" data-lookup="1" data-value-separator="<?php echo $v102_daf_kelas_siswa_list->siswa->displayValueSeparatorAttribute() ?>" name="x_siswa" id="x_siswa" value="<?php echo $v102_daf_kelas_siswa_list->siswa->AdvancedSearch->SearchValue ?>"<?php echo $v102_daf_kelas_siswa_list->siswa->editAttributes() ?>>
 </span>
 	</div>
 	<?php if ($v102_daf_kelas_siswa_list->SearchColumnCount % $v102_daf_kelas_siswa_list->SearchFieldsPerRow == 0) { ?>
